@@ -26,7 +26,7 @@ jobs:
             if (prAuthor === 'renovate[bot]') {
               isAllowListed = true;
             } else {
-              const teams = ['ops', 'bots', 'staff', 'dev-team', 'moderators'];
+              const teams = ['moderators', 'ops', 'bots', 'staff', 'dev-team'];
               for (const team of teams) {
                 const response = await github.rest.teams.getMembershipForUserInOrg({
                   org: context.repo.owner,
