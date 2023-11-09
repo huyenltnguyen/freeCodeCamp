@@ -8,7 +8,7 @@ on:
       # from GitHub UI might be acceptable. Enable this if you want to block
       # all commits from GitHub UI.
       #
-      # - synchronize
+      - synchronize
 
 jobs:
   has-web-commits:
@@ -26,13 +26,15 @@ jobs:
             if (prAuthor === 'renovate[bot]') {
               isAllowListed = true;
             } else {
-              const teams = ['ops', 'bots', 'staff', 'dev-team', 'moderators'];
+              const teams = ['moderators', 'ops', 'bots', 'staff', 'dev-team'];
               for (const team of teams) {
                 const response = await github.rest.teams.getMembershipForUserInOrg({
                   org: context.repo.owner,
                   team_slug: team,
                   username: prAuthor
-                }).catch(() => ({ status: 404 }));
+                }).catch(() => {
+                  continue;
+                });
                 if (response.status == 200) {
                   isAllowListed = true;
                   break;
