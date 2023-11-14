@@ -1,4 +1,4 @@
-name: GitHub - No Commits on GitHub Web
+name: GitHub - Pull Request Convention
 on:
   pull_request_target:
     types:
