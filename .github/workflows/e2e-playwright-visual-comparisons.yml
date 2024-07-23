@@ -64,8 +64,6 @@ jobs:
   playwright-run:
     name: E2E Test
     runs-on: ubuntu-22.04
-    container:
-      image: mcr.microsoft.com/playwright:v1.45.1-jammy
     needs: build-client
     strategy:
       fail-fast: false
