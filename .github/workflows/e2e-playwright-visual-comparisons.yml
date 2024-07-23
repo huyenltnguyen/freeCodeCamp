@@ -138,3 +138,7 @@ jobs:
           pnpm run start-ci &
           sleep 10
           npx playwright test --project="${{ matrix.browsers }}" --grep 'snapshot-.*.spec.ts'
+      # Commit the changes to the pull request branch
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: '[CI] Update Snapshots'
