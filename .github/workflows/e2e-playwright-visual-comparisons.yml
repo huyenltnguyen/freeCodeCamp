@@ -71,7 +71,8 @@ jobs:
         # Not Mobile Safari until we can get it working. Webkit and Mobile
         # Chrome both work, so hopefully there are no Mobile Safari specific
         # bugs.
-        browsers: [chromium, firefox, webkit, Mobile Chrome]
+        # browsers: [chromium, firefox, webkit, Mobile Chrome]
+        browsers: [chromium, Mobile Chrome]
         node-version: [20.x]
 
     services:
@@ -137,8 +138,31 @@ jobs:
         run: |
           pnpm run start-ci &
           sleep 10
-          npx playwright test --project="${{ matrix.browsers }}" --grep 'snapshot-.*.spec.ts'
-      # Commit the changes to the pull request branch
-      - uses: stefanzweifel/git-auto-commit-action@v4
+          npx playwright test --project="${{ matrix.browsers }}" --grep 'snapshot-.*.spec.ts' --update-snapshots
+
+      - name: Upload Snapshots
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: playwright-snapshots-artifact-${{ matrix.browsers }}
+          path: e2e/__screenshots__
+          if-no-files-found: error
+
+  commit-snapshots:
+    name: Commit Snapshots
+    runs-on: ubuntu-22.04
+    needs: playwright-run
+    steps:
+      - name: Checkout Source Files
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Download Snapshots
+        uses: actions/download-artifact@v4.1.8
+        with:
+          path: e2e/__screenshots__
+          pattern: playwright-snapshots-artifact-*
+          merge-multiple: true
+
+      - name: Commit the changes to the PR branch
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: '[CI] Update Snapshots'
