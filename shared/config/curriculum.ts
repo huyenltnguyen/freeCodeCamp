@@ -280,6 +280,44 @@ export const notAuditedSuperBlocks: NotAuditedSuperBlocks = {
 
 Object.freeze(notAuditedSuperBlocks);
 
+// -------- Front End Development Superblock starts ----------
+enum FedChapters {
+  Html = 'html',
+  Css = 'css'
+  // ...
+}
+
+enum FedHtmlModules {
+  BasicHtml = 'basic-html',
+  SemanticHtml = 'semantic-html'
+}
+
+enum FedCssModules {
+  BasicCss = 'basic-css',
+  DesignForDevelopers = 'design-for-developers'
+}
+
+enum FedHtmlBlocks {
+  // Basic HTML
+  WorkshopCatPhotoApp = 'workshop-cat-photo-app',
+  LabRecipePage = 'lab-recipe-page',
+  // Semantic HTML
+  WorkshopBlogPage = 'workshop-blog-page'
+}
+
+export const frontEndDevelopmentSuperBlock = {
+  [FedChapters.Html]: {
+    [FedHtmlModules.BasicHtml]: [
+      [FedHtmlBlocks.WorkshopCatPhotoApp],
+      [FedHtmlBlocks.LabRecipePage]
+    ],
+    [FedHtmlModules.SemanticHtml]: [[FedHtmlBlocks.WorkshopBlogPage]]
+  }
+};
+
+Object.freeze(frontEndDevelopmentSuperBlock);
+// -------- Front End Development Superblock ends ----------
+
 type Config = {
   showNewCurriculum: boolean;
   showUpcomingChanges: boolean;

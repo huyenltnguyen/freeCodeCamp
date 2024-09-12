@@ -32,6 +32,7 @@ import CertChallenge from './components/cert-challenge';
 import LegacyLinks from './components/legacy-links';
 import HelpTranslate from './components/help-translate';
 import SuperBlockIntro from './components/super-block-intro';
+import { FrontEndDevelopmentTreeView } from './components/front-end-development-tree-view';
 import { resetExpansion, toggleBlock } from './redux';
 
 import './intro.css';
@@ -229,6 +230,7 @@ const SuperBlockIntroductionPage = (props: SuperBlockProp) => {
                 {t(`intro:misc-text.courses`)}
               </h2>
               <Spacer size='medium' />
+              <FrontEndDevelopmentTreeView />
               <div className='block-ui'>
                 {defaultCurriculumNames.map(blockDashedName => (
                   <Block
