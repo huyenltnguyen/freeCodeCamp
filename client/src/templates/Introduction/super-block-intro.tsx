@@ -33,6 +33,7 @@ import LegacyLinks from './components/legacy-links';
 import HelpTranslate from './components/help-translate';
 import SuperBlockIntro from './components/super-block-intro';
 import { resetExpansion, toggleBlock } from './redux';
+import { FrontEndDevelopmentSuperBlockIntro } from './components/front-end-development-super-block-intro';
 
 import './intro.css';
 
@@ -198,6 +199,8 @@ const SuperBlockIntroductionPage = (props: SuperBlockProp) => {
     SuperBlocks.PythonForEverybody
   ];
 
+  const isFrontEndDevelopment = superBlock === SuperBlocks.FrontEndDevelopment;
+
   const onCertificationDonationAlertClick = () => {
     callGA({
       event: 'donation_related',
@@ -230,16 +233,22 @@ const SuperBlockIntroductionPage = (props: SuperBlockProp) => {
               </h2>
               <Spacer size='medium' />
               <div className='block-ui'>
-                {defaultCurriculumNames.map(blockDashedName => (
-                  <Block
-                    key={blockDashedName}
-                    blockDashedName={blockDashedName}
-                    challenges={nodesForSuperBlock.filter(
-                      node => node.challenge.block === blockDashedName
-                    )}
-                    superBlock={superBlock}
+                {isFrontEndDevelopment && (
+                  <FrontEndDevelopmentSuperBlockIntro
+                    nodesForSuperBlock={nodesForSuperBlock}
                   />
-                ))}
+                )}
+                {!isFrontEndDevelopment &&
+                  defaultCurriculumNames.map(blockDashedName => (
+                    <Block
+                      key={blockDashedName}
+                      blockDashedName={blockDashedName}
+                      challenges={nodesForSuperBlock.filter(
+                        node => node.challenge.block === blockDashedName
+                      )}
+                      superBlock={superBlock}
+                    />
+                  ))}
                 {!superblockWithoutCert.includes(superBlock) && (
                   <CertChallenge
                     certification={certification}

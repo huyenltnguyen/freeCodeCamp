@@ -1,0 +1,44 @@
+:root {
+  /* A top margin is needed in order to make the icon horizontally aligned with the associated block title.
+     The top margin consists of:
+      - 18px of `.grid-project-block` top margin, and
+      - 18px of `.map-title` top margin */
+  --checkmark-top-margin: 36px;
+  --checkmark-size: 30px;
+
+  --path-width: 2px;
+}
+
+.fed-block-container {
+  display: flex;
+  position: relative;
+}
+
+.fed-block-container .block {
+  width: 100%;
+}
+
+.fed-block-checkmark {
+  margin-top: var(--checkmark-top-margin);
+  margin-inline-end: 16px;
+  width: var(--checkmark-size);
+  height: var(--checkmark-size);
+}
+
+/* This is the path that runs across module blocks */
+.fed-block-container:not(:last-child) .fed-block-checkmark-container:after {
+  content: '';
+  display: block;
+  width: var(--path-width);
+  height: 100%;
+  background-color: var(--secondary-color);
+  position: absolute;
+  top: calc(var(--checkmark-top-margin) + var(--checkmark-size));
+  left: calc(
+    var(--checkmark-size) / 2 - var(--path-width) / 2
+  ); /* To vertically center the icon and the path. */
+}
+
+.fed-block-container .grid-project-block {
+  margin: 0;
+}
