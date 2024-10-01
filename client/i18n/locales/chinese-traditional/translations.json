@@ -7,8 +7,6 @@
     "first-lesson": "訪問第一個課程",
     "close": "關閉",
     "edit": "編輯",
-    "frontend": "前端",
-    "backend": "後端",
     "view": "查看",
     "view-code": "查看代碼",
     "view-project": "查看項目",
@@ -447,6 +445,7 @@
     "help-translate": "我們還在翻譯這個認證課程。",
     "help-translate-link": "幫助我們翻譯。",
     "project-preview-title": "下面是你將構建的項目的預覽",
+    "demo-project-title": "Here's an example of a project that meets the requirements",
     "github-required": "如果你沒有 GitHub 賬戶，你需要 <0>創建 GitHub</0> 賬戶。 你需要創建虛擬 Linux 服務器，這個過程可能需要幾分鐘。",
     "gitpod": {
       "intro": "本課程使用 Gitpod 在虛擬的 Linux 機器中運行。按照這些說明開始學習課程：",
@@ -904,9 +903,9 @@
       "heading-legacy-full-stack": "作爲舊版全棧認證的一部分，{{user}} 完成了以下認證：",
       "heading-exam": "作爲認證的一部分，{{user}} 通過了以下考試： ",
       "heading": "作爲此認證的一部分，{{user}} 構建了以下項目，並通過所有自動測試：",
-      "solution": "解決方案",
+      "solution": "Solution",
       "no-solution": "顯示解決方案出錯時，發送電子郵件到 support@freeCodeCamp.org 獲得幫助。",
-      "source": "來源",
+      "source": "Source",
       "footnote": "如果你懷疑其中任何項目違反了<2>學術誠信條例</2>，請<5>向我們的團隊報告</5>。",
       "title": {
         "Build a Personal Portfolio Webpage": "創建一個個人作品集頁面",

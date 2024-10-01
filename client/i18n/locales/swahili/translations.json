@@ -7,8 +7,6 @@
     "first-lesson": "Nenda kwenye somo la kwanza",
     "close": "Funga",
     "edit": "Hariri",
-    "frontend": "Front End",
-    "backend": "Back End",
     "view": "Tazama",
     "view-code": "Tazama Code",
     "view-project": "Tazama Mradi",
@@ -447,6 +445,7 @@
     "help-translate": "We are still translating this certification.",
     "help-translate-link": "Tusaidie kutafsiri.",
     "project-preview-title": "Hapa kuna muonyesho wa kile utakachounda",
+    "demo-project-title": "Here's an example of a project that meets the requirements",
     "github-required": "<0>Unda akaunti ya GitHub</0> ikiwa huna akaunti. Utaihitaji unapounda mashine ya seva ya Linux. Mchakato huu unaweza kuchukua dakika chache.",
     "gitpod": {
       "intro": "This course runs in a virtual Linux machine using Gitpod. Follow these instructions to start the course:",
@@ -904,9 +903,9 @@
       "heading-legacy-full-stack": "Kama sehemu ya uthibitishaji huu wa Legacy Full Stack, {{user}} alikamilisha uthibitishaji ufuatao:",
       "heading-exam": "As part of this certification, {{user}} passed the following exam: ",
       "heading": "Kama sehemu ya uthibitishaji huu, {{user}} aliunda miradi ifuatayo na akapita majaribio yote ya majaribio ya kiotomatiki:",
-      "solution": "suluhisho",
+      "solution": "Solution",
       "no-solution": "hitilafu ya kuonyesha suluhisho, tuma barua pepe kwa support@freeCodeCamp.org ili kupata usaidizi.",
-      "source": "chanzo",
+      "source": "Source",
       "footnote": "Iwapo unashuku kuwa yoyote ya miradi hii inakiuka <2>sera ya uaminifu ya kitaaluma</2>, tafadhali <5>ripoti hili kwa timu yetu</5>.",
       "title": {
         "Build a Personal Portfolio Webpage": "Jenga Ukurasa wa Tovuti ya Kibinafsi",
