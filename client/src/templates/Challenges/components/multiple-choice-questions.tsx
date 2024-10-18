@@ -36,7 +36,7 @@ function MultipleChoiceQuestions({
       />
       {questions.map((question, questionIndex) => (
         <div key={questionIndex}>
-          <PrismFormatted className={'line-numbers'} text={question.text} />
+          <PrismFormatted hasLineNumbers text={question.text} />
           <div className='video-quiz-options'>
             {question.answers.map(({ answer }, answerIndex) => {
               const isSubmittedAnswer =

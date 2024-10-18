@@ -17,7 +17,7 @@ function ChallengeExplanation({
       <details className='explanation'>
         <summary>{t('learn.explanation')}</summary>
         <Spacer size='medium' />
-        <PrismFormatted className={'line-numbers'} text={explanation} />
+        <PrismFormatted hasLineNumbers text={explanation} />
       </details>
       <Spacer size='medium' />
     </>

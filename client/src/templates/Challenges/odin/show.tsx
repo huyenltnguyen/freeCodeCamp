@@ -312,7 +312,7 @@ class ShowOdin extends Component<ShowOdinProps, ShowOdinState> {
                 >
                   {title}
                 </ChallengeTitle>
-                <PrismFormatted className={'line-numbers'} text={description} />
+                <PrismFormatted hasLineNumbers text={description} />
                 <Spacer size='medium' />
               </Col>
 
@@ -326,10 +326,7 @@ class ShowOdin extends Component<ShowOdinProps, ShowOdinState> {
 
               <Col md={8} mdOffset={2} sm={10} smOffset={1} xs={12}>
                 {instructions && (
-                  <PrismFormatted
-                    className={'line-numbers'}
-                    text={instructions}
-                  />
+                  <PrismFormatted hasLineNumbers text={instructions} />
                 )}
 
                 <ObserveKeys>

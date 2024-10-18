@@ -242,7 +242,7 @@ class ShowDialogue extends Component<ShowDialogueProps, ShowDialogueState> {
                 >
                   {title}
                 </ChallengeTitle>
-                <PrismFormatted className={'line-numbers'} text={description} />
+                <PrismFormatted hasLineNumbers text={description} />
                 <Spacer size='medium' />
               </Col>
 
@@ -258,10 +258,7 @@ class ShowDialogue extends Component<ShowDialogueProps, ShowDialogueState> {
                 <Spacer size='medium' />
                 {instructions && (
                   <>
-                    <PrismFormatted
-                      className={'line-numbers'}
-                      text={instructions}
-                    />
+                    <PrismFormatted hasLineNumbers text={instructions} />
                     <Spacer size='medium' />
                   </>
                 )}
