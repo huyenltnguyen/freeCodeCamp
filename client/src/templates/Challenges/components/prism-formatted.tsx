@@ -16,6 +16,7 @@ function PrismFormatted({
   text,
   useSpan,
   noAria,
+  hasLineNumbers,
   isCollapsible
 }: PrismFormattedProps): JSX.Element {
   const { t } = useTranslation();
@@ -26,6 +27,7 @@ function PrismFormatted({
       text={text}
       noAria={noAria}
       useSpan={useSpan}
+      hasLineNumbers={hasLineNumbers}
       getCodeBlockAriaLabel={codeName =>
         t('aria.code-example', {
           codeName

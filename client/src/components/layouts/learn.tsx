@@ -7,8 +7,6 @@ import { tryToShowDonationModal } from '../../redux/actions';
 import { userFetchStateSelector } from '../../redux/selectors';
 import DonateModal from '../Donation/donation-modal';
 
-import './prism.css';
-import './prism-night.css';
 import 'react-reflex/styles.css';
 import './learn.css';
 
