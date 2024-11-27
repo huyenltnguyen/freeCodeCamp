@@ -448,6 +448,7 @@ export const userGetRoutes: FastifyPluginCallbackTypebox = (
             acceptedPrivacyTerms: true,
             completedChallenges: true,
             completedExams: true,
+            completedBlocks: true,
             completedModules: true,
             completedChapters: true,
             currentChallengeId: true,

@@ -34,6 +34,11 @@ type PartiallyCompletedChallenge {
   completedDate Float
 }
 
+type CompletedBlock {
+  id            String
+  completedDate Float
+}
+
 type CompletedModule {
   id            String
   completedDate Float
@@ -86,6 +91,7 @@ model user {
   acceptedPrivacyTerms         Boolean
   completedChallenges          CompletedChallenge[]
   completedExams               CompletedExam[] // Undefined
+  completedBlocks              CompletedBlock[] // Undefined
   completedModules             CompletedModule[] // Undefined
   completedChapters            CompletedChapter[] // Undefined
   currentChallengeId           String?

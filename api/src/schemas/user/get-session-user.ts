@@ -41,6 +41,12 @@ export const getSessionUser = {
               examResults
             })
           ),
+          completedBlocks: Type.Array(
+            Type.Object({
+              id: Type.String(),
+              completedDate: Type.Number()
+            })
+          ),
           completedModules: Type.Array(
             Type.Object({
               id: Type.String(),
