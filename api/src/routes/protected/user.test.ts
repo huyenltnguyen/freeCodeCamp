@@ -78,6 +78,9 @@ const testUserData: Prisma.userCreateInput = {
   ],
   partiallyCompletedChallenges: [{ id: '123', completedDate: 123 }],
   completedExams: [],
+  completedBlocks: [
+    { id: 'lecture-what-is-html', completedDate: 1733875200000 }
+  ],
   completedModules: [{ id: 'basic-html', completedDate: 1733875200000 }],
   completedChapters: [{ id: 'html', completedDate: 1733961600000 }],
   githubProfile: 'github.com/foobar',
@@ -212,6 +215,7 @@ const publicUserData = {
     }
   ],
   completedExams: testUserData.completedExams,
+  completedBlocks: testUserData.completedBlocks,
   completedModules: testUserData.completedModules,
   completedChapters: testUserData.completedChapters,
   completedSurveys: [], // TODO: add surveys
@@ -285,6 +289,7 @@ const baseProgressData = {
   isCollegeAlgebraPyCertV8: false,
   completedChallenges: [],
   completedExams: [],
+  completedBlocks: [],
   completedModules: [],
   completedChapters: [],
   savedChallenges: [],
@@ -719,6 +724,7 @@ describe('userRoutes', () => {
           currentChallengeId: '',
           completedChallenges: [],
           completedExams: [],
+          completedBlocks: [],
           completedModules: [],
           completedChapters: [],
           completedSurveys: [],
