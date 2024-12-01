@@ -20,6 +20,7 @@ interface Block {
     challengeType: number;
     url?: string;
     msTrophyId?: string;
+    block?: string; // `block` can be undefined if the challenge is a certification challenge
   }[];
 }
 

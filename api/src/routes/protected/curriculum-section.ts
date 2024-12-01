@@ -1,36 +1,41 @@
 import { type FastifyPluginCallbackTypebox } from '@fastify/type-provider-typebox';
 import {
   CompletedBlock,
+  CompletedChallenge,
   CompletedChapter,
   CompletedModule
 } from '@prisma/client';
+import { groupBy, isArray, isEmpty, max, uniq } from 'lodash';
 
 import * as schemas from '../../schemas';
+import { getBlocks } from '../../utils/get-blocks';
+import { getChallenges } from '../../utils/get-challenges';
 
 const getInformationForUpdate = ({
   id: sectionId,
-  completedItems,
+  completedSections,
   completedDate
 }: {
   id: undefined | string;
-  completedItems: CompletedBlock[] | CompletedModule[] | CompletedChapter[];
+  completedSections: CompletedBlock[] | CompletedModule[] | CompletedChapter[];
   completedDate: number;
 }) => {
   const alreadyCompletedSection = sectionId
-    ? completedItems.find(({ id }) => sectionId === id)
+    ? completedSections.find(({ id }) => sectionId === id)
     : undefined;
 
-  const newCompletedSection =
+  const newCompletedSections =
     !sectionId || alreadyCompletedSection
-      ? completedItems
-      : {
-          push: {
+      ? completedSections
+      : [
+          ...completedSections,
+          {
             id: sectionId,
             completedDate
           }
-        };
+        ];
 
-  return { alreadyCompletedSection, newCompletedSection };
+  return { alreadyCompletedSection, newCompletedSections };
 };
 
 const getReturnValue = ({
@@ -53,6 +58,43 @@ const getReturnValue = ({
     alreadyCompleted: !!alreadyCompletedSection,
     completedDate: alreadyCompletedSection?.completedDate || completedDate
   };
+};
+
+const syncBlocksCompletionState = ({
+  completedChallenges
+}: {
+  completedChallenges: CompletedChallenge[];
+}) => {
+  // Get all challenges, except certification ones
+  const allChallenges = getChallenges().filter(({ block }) => !!block);
+  const allBlocks = getBlocks();
+  const challengesByBlock = groupBy(allChallenges, 'block');
+
+  const completedBlocks = allBlocks.reduce((acc, curr) => {
+    const challengeIds = challengesByBlock[curr]?.map(({ id }) => id);
+    const completeChallengesInBlock = completedChallenges.filter(({ id }) =>
+      challengeIds?.includes(id)
+    );
+
+    if (challengeIds?.length !== completeChallengesInBlock?.length) {
+      return acc;
+    }
+
+    const date = completeChallengesInBlock.reduce(
+      (acc, curr) => (curr.completedDate > acc ? curr.completedDate : acc),
+      0
+    );
+
+    return [
+      ...acc,
+      {
+        id: curr,
+        completedDate: date
+      }
+    ];
+  }, [] as CompletedBlock[]);
+
+  return completedBlocks;
 };
 
 /**
@@ -92,45 +134,54 @@ export const curriculumSectionRoutes: FastifyPluginCallbackTypebox = (
         where: { id: userId },
         select: {
           id: true,
+          completedChallenges: true,
           completedBlocks: true,
           completedModules: true,
           completedChapters: true
         }
       });
 
+      let unsyncedCompletedBlocks: CompletedBlock[] = [];
+      if (isEmpty(user.completedBlocks)) {
+        unsyncedCompletedBlocks = syncBlocksCompletionState({
+          completedChallenges: user.completedChallenges
+        });
+      }
+      console.log('🚀 ~ unsyncedCompletedBlocks:', unsyncedCompletedBlocks);
+
       const completedDate = Date.now();
 
       const {
         alreadyCompletedSection: alreadyCompletedBlock,
-        newCompletedSection: newCompletedBlocks
+        newCompletedSections: newCompletedBlocks
       } = getInformationForUpdate({
         id: blockId,
-        completedItems: user.completedBlocks,
+        completedSections: user.completedBlocks,
         completedDate
       });
 
       const {
         alreadyCompletedSection: alreadyCompletedModule,
-        newCompletedSection: newCompletedModules
+        newCompletedSections: newCompletedModules
       } = getInformationForUpdate({
         id: moduleId,
-        completedItems: user.completedModules,
+        completedSections: user.completedModules,
         completedDate
       });
 
       const {
         alreadyCompletedSection: alreadyCompletedChapter,
-        newCompletedSection: newCompletedChapters
+        newCompletedSections: newCompletedChapters
       } = getInformationForUpdate({
         id: chapterId,
-        completedItems: user.completedChapters,
+        completedSections: user.completedChapters,
         completedDate
       });
 
       await fastify.prisma.user.update({
         where: { id: user.id },
         data: {
-          completedBlocks: newCompletedBlocks,
+          completedBlocks: [...newCompletedBlocks, ...unsyncedCompletedBlocks],
           completedModules: newCompletedModules,
           completedChapters: newCompletedChapters
         }

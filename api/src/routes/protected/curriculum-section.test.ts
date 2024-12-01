@@ -135,6 +135,64 @@ describe('curriculumSectionRoutes', () => {
           expect(res.statusCode).toBe(200);
         });
 
+        test.only('POST handles block completion synchronization', async () => {
+          await fastifyTestInstance.prisma.user.updateMany({
+            where: { email: 'foo@bar.com' },
+            data: {
+              completedChallenges: [
+                {
+                  id: '662693f82c91a66be46c881b', // Building a Gradebook App Step 1
+                  completedDate: EXISTING_COMPLETED_DATE
+                },
+                {
+                  id: '6626a060c4006f793e10cb33', // Building a Gradebook App Step 2
+                  completedDate: EXISTING_COMPLETED_DATE
+                },
+                {
+                  id: '6626b4c58c027d86478ff5eb', // Building a Gradebook App Step 3
+                  completedDate: EXISTING_COMPLETED_DATE
+                },
+                {
+                  id: '6626b8dcf5057f896f948440', // Building a Gradebook App Step 4
+                  completedDate: EXISTING_COMPLETED_DATE
+                }
+              ],
+              completedBlocks: []
+            }
+          });
+
+          const res = await superPost('/curriculum-section-completed').send({
+            blockId: 'lecture-what-is-html'
+          });
+
+          const user = await fastifyTestInstance.prisma.user.findFirstOrThrow({
+            where: { email: 'foo@bar.com' }
+          });
+
+          expect(user.completedBlocks).toMatchObject([
+            {
+              id: 'review-js-fundamentals-by-building-a-gradebook-app',
+              completedDate: EXISTING_COMPLETED_DATE
+            },
+            {
+              id: 'lecture-what-is-html',
+              completedDate: EXISTING_COMPLETED_DATE
+            }
+          ]);
+
+          expect(res.body).toStrictEqual({
+            block: {
+              id: 'lecture-what-is-html',
+              alreadyCompleted: true,
+              completedDate: EXISTING_COMPLETED_DATE
+            },
+            module: null,
+            chapter: null
+          });
+
+          expect(res.statusCode).toBe(200);
+        });
+
         test('POST handles newly completed module', async () => {
           const res = await superPost('/curriculum-section-completed').send({
             moduleId: 'semantic-html'
