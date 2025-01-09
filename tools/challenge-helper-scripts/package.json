@@ -20,7 +20,8 @@
   "main": "utils.js",
   "scripts": {
     "test": "mocha --delay --reporter progress --bail",
-    "create-project": "ts-node create-project"
+    "create-project": "ts-node create-project",
+    "create-ids": "ts-node create-ids"
   },
   "devDependencies": {
     "@types/glob": "^8.0.1",
