@@ -3,6 +3,7 @@ import { resolve, dirname } from 'path';
 import { submitTypes } from '../../../shared/config/challenge-types';
 import { type ChallengeNode } from '../../../client/src/redux/prop-types';
 import { SuperBlocks } from '../../../shared/config/curriculum';
+import fullStackSuperBlockStructure from '../../../curriculum/superblock-structure/full-stack.json';
 
 type Intro = { [keyValue in SuperBlocks]: IntroProps };
 export type Curriculum<T> = {
@@ -90,6 +91,44 @@ export function buildExtCurriculumData(
     });
 
     for (const superBlockKey of superBlockKeys) {
+      if (superBlockKey === SuperBlocks.FullStackDeveloper) {
+        const chapters = fullStackSuperBlockStructure.chapters;
+        const blocksWithData = curriculum[superBlockKey].blocks;
+
+        const allChapters = chapters.reduce((accChapters, chapter) => {
+          accChapters[chapter.dashedName] = {
+            modules: chapter.modules.reduce((accModules, module) => {
+              accModules[module.dashedName] = {
+                comingSoon: module.comingSoon,
+                blocks: module.blocks.reduce((accBlocks, block) => {
+                  const blockData = blocksWithData[block.dashedName];
+
+                  accBlocks[block.dashedName] = {
+                    desc: getBlockDescription(superBlockKey, block.dashedName),
+                    challenges: blockData.meta
+                  };
+
+                  return accBlocks;
+                }, {})
+              };
+              return accModules;
+            }, {})
+          };
+
+          return accChapters;
+        }, {});
+
+        const superBlock: Curriculum<GeneratedCurriculumProps> = {
+          [superBlockKey]: {
+            intro: getSuperBlockDescription(superBlockKey),
+            chapters: allChapters
+          }
+        };
+
+        writeToFile(superBlockKey, superBlock);
+        continue;
+      }
+
       const superBlock = <Curriculum<GeneratedCurriculumProps>>{};
       const blockNames = Object.keys(curriculum[superBlockKey].blocks);
 
