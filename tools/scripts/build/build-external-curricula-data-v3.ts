@@ -3,6 +3,8 @@ import { resolve, dirname } from 'path';
 import { submitTypes } from '../../../shared/config/challenge-types';
 import { type ChallengeNode } from '../../../client/src/redux/prop-types';
 import { SuperBlocks } from '../../../shared/config/curriculum';
+import fullStackSuperBlockStructure from '../../../curriculum/superblock-structure/full-stack.json';
+import type { Chapter } from './../../../shared/config/chapters';
 
 type Intro = { [keyValue in SuperBlocks]: IntroProps };
 export type Curriculum<T> = {
@@ -21,9 +23,38 @@ export interface CurriculumProps {
   blocks: Record<string, Block<ChallengeNode['challenge'][]>>;
 }
 
-interface GeneratedCurriculumProps {
+type GeneratedCurriculumProps =
+  | GeneratedBlockBasedCurriculumProps
+  | GeneratedChapterBasedCurriculumProps;
+
+interface GeneratedBlockBasedCurriculumProps {
   intro: string[];
   blocks: Record<string, Block<Record<string, unknown>>>;
+}
+
+interface GeneratedChapterBasedCurriculumProps {
+  intro: string[];
+  chapters: GeneratedChapter[];
+}
+
+interface GeneratedChapter {
+  dashedName: string;
+  comingSoon?: boolean;
+  modules: GeneratedModule[];
+  chapterType?: string;
+}
+
+interface GeneratedModule {
+  dashedName: string;
+  comingSoon?: boolean;
+  blocks: GeneratedBlock[];
+  moduleType?: string;
+}
+
+interface GeneratedBlock {
+  dashedName: string;
+  intro: string;
+  meta: Record<string, unknown>;
 }
 
 interface Block<T> {
@@ -61,7 +92,7 @@ export const orderedSuperBlockInfo = [
 
 const dashedNames = orderedSuperBlockInfo.map(({ dashedName }) => dashedName);
 
-export function buildExtCurriculumData(
+export function buildExtCurriculumDataV3(
   ver: string,
   curriculum: Curriculum<CurriculumProps>
 ): void {
@@ -90,38 +121,62 @@ export function buildExtCurriculumData(
     });
 
     for (const superBlockKey of superBlockKeys) {
-      const superBlock = <Curriculum<GeneratedCurriculumProps>>{};
-      const blockNames = Object.keys(curriculum[superBlockKey].blocks);
+      if (superBlockKey === SuperBlocks.FullStackDeveloper) {
+        const chapters: Chapter[] = fullStackSuperBlockStructure.chapters;
+        const blocksWithData = curriculum[superBlockKey].blocks;
 
-      if (blockNames.length === 0) continue;
+        const allChapters = chapters.map(chapter => {
+          return {
+            dashedName: chapter.dashedName,
+            comingSoon: chapter.comingSoon,
+            chapterType: chapter.chapterType,
+            modules: chapter.modules.map(module => {
+              return {
+                dashedName: module.dashedName,
+                comingSoon: module.comingSoon,
+                moduleType: module.moduleType,
+                blocks: module.blocks.map(block => {
+                  const blockData = blocksWithData[block.dashedName];
 
-      superBlock[superBlockKey] = <GeneratedCurriculumProps>{};
-      superBlock[superBlockKey].intro = getSuperBlockDescription(superBlockKey);
-      superBlock[superBlockKey].blocks = {};
+                  return {
+                    dashedName: block.dashedName,
+                    intro: getBlockDescription(superBlockKey, block.dashedName),
+                    meta: blockData.meta
+                  };
+                })
+              };
+            })
+          };
+        });
 
-      for (const blockName of blockNames) {
-        superBlock[superBlockKey]['blocks'][blockName] = <
-          Block<Record<string, unknown>>
-        >{};
+        const superBlock = {
+          [superBlockKey]: {
+            intro: getSuperBlockDescription(superBlockKey),
+            chapters: allChapters
+          }
+        };
 
-        superBlock[superBlockKey]['blocks'][blockName]['desc'] =
-          getBlockDescription(superBlockKey, blockName);
+        writeToFile(superBlockKey, superBlock);
+      } else {
+        const blockNames = Object.keys(curriculum[superBlockKey].blocks);
+        const blocks = blockNames.map(blockName => {
+          const blockData = curriculum[superBlockKey].blocks[blockName];
 
-        superBlock[superBlockKey]['blocks'][blockName]['challenges'] =
-          curriculum[superBlockKey]['blocks'][blockName]['meta'];
+          return {
+            intro: getBlockDescription(superBlockKey, blockName),
+            meta: blockData.meta
+          };
+        });
 
-        const blockChallenges =
-          curriculum[superBlockKey]['blocks'][blockName]['challenges'];
+        const superBlock = {
+          [superBlockKey]: {
+            intro: getSuperBlockDescription(superBlockKey),
+            blocks
+          }
+        };
 
-        for (const challenge of blockChallenges) {
-          const challengeId = challenge.id;
-          const challengePath = `challenges/${superBlockKey}/${blockName}/${challengeId}`;
-
-          writeToFile(challengePath, challenge);
-        }
+        writeToFile(superBlockKey, superBlock);
       }
-
-      writeToFile(superBlockKey, superBlock);
     }
   }
 
