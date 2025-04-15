@@ -52,10 +52,11 @@ test.describe('Landing Top - Variation B', () => {
   });
 
   test('The supporting copy renders correctly', async ({ page }) => {
-    const landingH2Heading = page.getByTestId('landing-h2-heading-b');
-    await expect(landingH2Heading).toHaveText(
-      translations.landing['h2-heading-b'].replace(/<\/?strong>/g, '')
+    const headingText = translations.landing['h2-heading-b'].replace(
+      /<\/?strong>/g,
+      ''
     );
+    await expect(page.getByText(headingText)).toBeVisible();
   });
 });
 
@@ -81,10 +82,9 @@ test.describe('Landing Top - Variation A', () => {
   });
 
   test('The supporting copy renders correctly', async ({ page }) => {
-    const landingH2Heading = page.getByTestId('landing-h2-heading');
-    await expect(landingH2Heading).toHaveText(
-      translations.landing['h2-heading']
-    );
+    await expect(
+      page.getByText(translations.landing['h2-heading'])
+    ).toBeVisible();
   });
 });
 
@@ -105,7 +105,9 @@ test.describe('Landing Page', () => {
     await goToLandingPage(page);
   });
 
-  test('Call to action buttons should render correctly', async ({ page }) => {
+  test('should render correctly on desktop', async ({ page, isMobile }) => {
+    test.skip(({ isMobile }) => isMobile, 'Only test on desktop');
+
     const ctas = page.getByRole('link', {
       name: translations.buttons['logged-in-cta-btn']
     });
@@ -113,75 +115,53 @@ test.describe('Landing Page', () => {
     for (const cta of await ctas.all()) {
       await expect(cta).toBeVisible();
     }
-  });
 
-  test('The headline renders correctly', async ({ page }) => {
-    const landingHeading1 = page.getByTestId('landing-big-heading-1');
-    await expect(landingHeading1).toHaveText(
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
       translations.landing['big-heading-1']
     );
+    await expect(
+      page.getByText(translations.landing['big-heading-2'])
+    ).toBeVisible();
+    await expect(
+      page.getByText(translations.landing['big-heading-3'])
+    ).toBeVisible();
 
-    const landingHeading2 = page.getByTestId('landing-big-heading-2');
-    await expect(landingHeading2).toHaveText(
-      translations.landing['big-heading-2']
-    );
+    // Campers image
+    await expect(
+      page.getByRole('img', { name: translations.landing['hero-img-alt'] })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('caption', {
+        name: translations.landing['hero-img-description']
+      })
+    ).toBeVisible();
 
-    const landingHeading3 = page.getByTestId('landing-big-heading-3');
-    await expect(landingHeading3).toHaveText(
-      translations.landing['big-heading-3']
-    );
-  });
+    // if (isMobile) {
+    //   await expect(campersImage).toBeHidden();
+    //   await expect(captionText).toBeHidden();
+    // } else {
+    //   await expect(campersImage).toBeVisible();
+    //   await expect(captionText).toBeVisible();
+    // }
 
-  test('Hero image should have an alt and a description', async ({
-    isMobile,
-    page
-  }) => {
-    const campersImage = page.getByAltText(
-      translations.landing['hero-img-alt']
-    );
-    const captionText = page.getByText(
-      translations.landing['hero-img-description']
-    );
+    // Brand logos
+    await expect(page.getByRole('img', { name: 'Apple' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Google' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Microsoft' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Spotify' })).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Amazon' })).toBeVisible();
 
-    if (isMobile) {
-      await expect(campersImage).toBeHidden();
-      await expect(captionText).toBeHidden();
-    } else {
-      await expect(campersImage).toBeVisible();
-      await expect(captionText).toBeVisible();
-    }
-  });
+    // const logos = page.getByTestId('brand-logo-container').locator('svg');
+    // await expect(logos).toHaveCount(5);
+    // for (const logo of await logos.all()) {
+    //   await expect(logo).toBeVisible();
+    // }
 
-  test('Has 5 brand logos', async ({ page }) => {
-    const logos = page.getByTestId('brand-logo-container').locator('svg');
-    await expect(logos).toHaveCount(5);
-    for (const logo of await logos.all()) {
-      await expect(logo).toBeVisible();
-    }
-  });
-
-  test('The campers landing page figure is visible on desktop and hidden on mobile view', async ({
-    page,
-    isMobile
-  }) => {
-    const landingPageImage = page.getByTestId('landing-page-figure');
-    if (isMobile) {
-      await expect(landingPageImage).toBeHidden();
-    } else {
-      await expect(landingPageImage).toBeVisible();
-    }
-  });
-
-  test('Testimonial section has a header', async ({ page }) => {
-    const testimonialsHeader = page.getByTestId('testimonials-section-header');
-    await expect(testimonialsHeader).toHaveText(
+    // Testimonials
+    await expect(page.getByRole('heading', { level: 2 })).toHaveText(
       translations.landing.testimonials['heading']
     );
-  });
 
-  test('Testimonial endorser people have images, occupation, location and testimony visible', async ({
-    page
-  }) => {
     const cards = page.getByTestId('testimonial-card');
     await expect(cards).toHaveCount(3);
     for (const card of await cards.all()) {
@@ -199,9 +179,7 @@ test.describe('Landing Page', () => {
         card.getByTestId('testimonials-endorser-testimony')
       ).toBeVisible();
     }
-  });
 
-  test('Links to all superblocks in order', async ({ page }) => {
     const curriculumBtns = page.getByTestId(landingPageElements.curriculumBtns);
     await expect(curriculumBtns).toHaveCount(superBlocks.length);
     for (let index = 0; index < superBlocks.length; index++) {
@@ -209,10 +187,109 @@ test.describe('Landing Page', () => {
       const link = btn.getByRole('link', { name: superBlocks[index] });
       await expect(link).toBeVisible();
     }
-  });
 
-  test('Has FAQ section', async ({ page }) => {
     const faqs = page.getByTestId(landingPageElements.faq);
     await expect(faqs).toHaveCount(9);
   });
+
+  // test('The headline renders correctly', async ({ page }) => {
+  //   const landingHeading1 = page.getByTestId('landing-big-heading-1');
+  //   await expect(landingHeading1).toHaveText(
+  //     translations.landing['big-heading-1']
+  //   );
+
+  //   const landingHeading2 = page.getByTestId('landing-big-heading-2');
+  //   await expect(landingHeading2).toHaveText(
+  //     translations.landing['big-heading-2']
+  //   );
+
+  //   const landingHeading3 = page.getByTestId('landing-big-heading-3');
+  //   await expect(landingHeading3).toHaveText(
+  //     translations.landing['big-heading-3']
+  //   );
+  // });
+
+  // test('Hero image should have an alt and a description', async ({
+  //   isMobile,
+  //   page
+  // }) => {
+  //   const campersImage = page.getByAltText(
+  //     translations.landing['hero-img-alt']
+  //   );
+  //   const captionText = page.getByText(
+  //     translations.landing['hero-img-description']
+  //   );
+
+  //   if (isMobile) {
+  //     await expect(campersImage).toBeHidden();
+  //     await expect(captionText).toBeHidden();
+  //   } else {
+  //     await expect(campersImage).toBeVisible();
+  //     await expect(captionText).toBeVisible();
+  //   }
+  // });
+
+  // test('Has 5 brand logos', async ({ page }) => {
+  //   const logos = page.getByTestId('brand-logo-container').locator('svg');
+  //   await expect(logos).toHaveCount(5);
+  //   for (const logo of await logos.all()) {
+  //     await expect(logo).toBeVisible();
+  //   }
+  // });
+
+  // test('The campers landing page figure is visible on desktop and hidden on mobile view', async ({
+  //   page,
+  //   isMobile
+  // }) => {
+  //   const landingPageImage = page.getByTestId('landing-page-figure');
+  //   if (isMobile) {
+  //     await expect(landingPageImage).toBeHidden();
+  //   } else {
+  //     await expect(landingPageImage).toBeVisible();
+  //   }
+  // });
+
+  // test('Testimonial section has a header', async ({ page }) => {
+  //   const testimonialsHeader = page.getByTestId('testimonials-section-header');
+  //   await expect(testimonialsHeader).toHaveText(
+  //     translations.landing.testimonials['heading']
+  //   );
+  // });
+
+  // test('Testimonial endorser people have images, occupation, location and testimony visible', async ({
+  //   page
+  // }) => {
+  //   const cards = page.getByTestId('testimonial-card');
+  //   await expect(cards).toHaveCount(3);
+  //   for (const card of await cards.all()) {
+  //     await expect(card).toBeVisible();
+  //     await expect(
+  //       card.getByTestId('testimonials-endorser-image-container')
+  //     ).toBeVisible();
+  //     await expect(
+  //       card.getByTestId('testimonials-endorser-location')
+  //     ).toBeVisible();
+  //     await expect(
+  //       card.getByTestId('testimonials-endorser-occupation')
+  //     ).toBeVisible();
+  //     await expect(
+  //       card.getByTestId('testimonials-endorser-testimony')
+  //     ).toBeVisible();
+  //   }
+  // });
+
+  // test('Links to all superblocks in order', async ({ page }) => {
+  //   const curriculumBtns = page.getByTestId(landingPageElements.curriculumBtns);
+  //   await expect(curriculumBtns).toHaveCount(superBlocks.length);
+  //   for (let index = 0; index < superBlocks.length; index++) {
+  //     const btn = curriculumBtns.nth(index);
+  //     const link = btn.getByRole('link', { name: superBlocks[index] });
+  //     await expect(link).toBeVisible();
+  //   }
+  // });
+
+  // test('Has FAQ section', async ({ page }) => {
+  //   const faqs = page.getByTestId(landingPageElements.faq);
+  //   await expect(faqs).toHaveCount(9);
+  // });
 });

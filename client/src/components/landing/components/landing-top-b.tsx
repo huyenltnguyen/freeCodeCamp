@@ -21,16 +21,10 @@ const LogoRow = (): JSX.Element => {
 
   return (
     <>
-      <p
-        className='logo-row-title'
-        data-playwright-test-label='landing-h2-heading-b'
-      >
+      <p className='logo-row-title'>
         <Trans>landing.h2-heading-b</Trans>
       </p>
-      <div
-        className='logo-row'
-        data-playwright-test-label='brand-logo-container'
-      >
+      <div className='logo-row'>
         <AppleLogo />
         <GoogleLogo />
         <MicrosoftLogo />
@@ -63,22 +57,11 @@ function LandingTop(): JSX.Element {
               id='content-start'
               className='mega-heading'
               data-test-label='landing-header'
-              data-playwright-test-label='landing-big-heading-1'
             >
               {t('landing.big-heading-1')}
             </h1>
-            <p
-              className='mega-heading'
-              data-playwright-test-label='landing-big-heading-2'
-            >
-              {t('landing.big-heading-2')}
-            </p>
-            <p
-              className='mega-heading'
-              data-playwright-test-label='landing-big-heading-3'
-            >
-              {t('landing.big-heading-3')}
-            </p>
+            <p className='mega-heading'>{t('landing.big-heading-2')}</p>
+            <p className='mega-heading'>{t('landing.big-heading-3')}</p>
             <LogoRow />
             <Spacer size='m' />
             <BigCallToAction />

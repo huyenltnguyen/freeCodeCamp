@@ -11,10 +11,7 @@ function CampersImage(): JSX.Element {
 
   return (
     <Media minWidth={LARGE_SCREEN_SIZE}>
-      <figure
-        data-test-label='landing-page-figure'
-        data-playwright-test-label='landing-page-figure'
-      >
+      <figure data-test-label='landing-page-figure'>
         <LazyImage alt={t('landing.hero-img-alt')} src={wideImg} />
         <figcaption className='caption'>
           {t('landing.hero-img-description')}

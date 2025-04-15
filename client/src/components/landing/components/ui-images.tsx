@@ -12,10 +12,7 @@ function UIImages(): JSX.Element {
 
   return (
     <Media minWidth={LARGE_SCREEN_SIZE}>
-      <figure
-        className='ui-images'
-        data-playwright-test-label='landing-page-figure'
-      >
+      <figure className='ui-images'>
         <LazyImage alt={t('landing.hero-img-uis')} src={landingPageb} />
       </figure>
       <Spacer size='xl' />

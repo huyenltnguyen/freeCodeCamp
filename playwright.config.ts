@@ -85,13 +85,13 @@ export default defineConfig({
     //   name: 'Google Chrome',
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' }
     // }
-  ],
+  ]
 
   /* Some tests make the api send emails, so we need mailhog to catch them */
-  webServer: {
-    command: 'docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog',
-    port: 1025,
-    reuseExistingServer: true,
-    timeout: 180000
-  }
+  // webServer: {
+  //   command: 'docker run -d -p 1025:1025 -p 8025:8025 mailhog/mailhog',
+  //   port: 1025,
+  //   reuseExistingServer: true,
+  //   timeout: 180000
+  // }
 });
