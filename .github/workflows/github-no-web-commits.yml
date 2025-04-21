@@ -40,7 +40,7 @@ jobs:
         run: |
           PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           COMMITS_URL="https://api.github.com/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/commits"
-          IS_GITHUB_COMMIT=$(curl --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "$COMMITS_URL" | jq '[.[] | .commit.committer.name] | any(.[]; . == "GitHub")')
+          IS_GITHUB_COMMIT=$(curl --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "$COMMITS_URL" | jq '[.[] | .committedViaWeb] | any(.[]; . == "true")')
           if [ "$IS_GITHUB_COMMIT" = "true" ]; then
             echo "IS_GITHUB_COMMIT=true" >> $GITHUB_ENV
           fi
