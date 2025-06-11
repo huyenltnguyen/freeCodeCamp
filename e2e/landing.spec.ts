@@ -51,19 +51,20 @@ test.describe('Landing Top - Variation B', () => {
     await goToLandingPage(page);
   });
 
-  test('Main heading copy renders correctly', async ({ page }) => {
+  test('should render all main elements correctly', async ({ page }) => {
+    // Main heading
     const bigHeading = page.getByTestId('big-heading-1-b');
     await expect(bigHeading).toHaveText(
       translations.landing['big-heading-1-b']
     );
-  });
 
-  test('Supporting copy renders correctly', async ({ page }) => {
-    const bigHeading = page.getByTestId('advance-career');
-    await expect(bigHeading).toHaveText(translations.landing['advance-career']);
-  });
+    // Supporting copy
+    const advanceCareer = page.getByTestId('advance-career');
+    await expect(advanceCareer).toHaveText(
+      translations.landing['advance-career']
+    );
 
-  test('Logo row copy renders correctly', async ({ page }) => {
+    // Logo row
     const landingH2Heading = page.getByTestId('graduates-work');
     await expect(landingH2Heading).toHaveText(
       translations.landing['graduates-work'].replace(/<\/?strong>/g, '')
@@ -77,7 +78,10 @@ test.describe('Landing Top - Variation A', () => {
     await goToLandingPage(page);
   });
 
-  test('The headline renders correctly', async ({ page }) => {
+  test('should render all main headings and logo row correctly', async ({
+    page
+  }) => {
+    // Headings
     const landingHeading1 = page.getByTestId('landing-big-heading-1');
     await expect(landingHeading1).toHaveText(
       translations.landing['big-heading-1']
@@ -92,9 +96,8 @@ test.describe('Landing Top - Variation A', () => {
     await expect(landingHeading3).toHaveText(
       translations.landing['big-heading-3']
     );
-  });
 
-  test('Logo row copy renders correctly', async ({ page }) => {
+    // Logo row
     const landingH2Heading = page.getByTestId('h2-heading');
     await expect(landingH2Heading).toHaveText(
       translations.landing['h2-heading'].replace(/<\/?strong>/g, '')
@@ -107,20 +110,22 @@ test.describe('Landing Page', () => {
     await goToLandingPage(page);
   });
 
-  test('The component Why learn with freeCodeCamp renders correctly', async ({
+  test('Desktop - should render all elements correctly', async ({
     context,
-    page
+    page,
+    isMobile
   }) => {
+    test.skip(isMobile, 'This test only runs on desktop');
+
+    // Why learn with freeCodeCamp
     await addGrowthbookCookie({ context, variation: 'C' });
     await goToLandingPage(page);
     const h2Element = page.locator(
       `h2:has-text("${translations.landing.benefits['heading']}")`
     );
-
     await expect(h2Element).toBeVisible();
-  });
 
-  test('Call to action buttons should render correctly', async ({ page }) => {
+    // CTA buttons
     const ctas = page.getByRole('link', {
       name: translations.buttons['logged-in-cta-btn']
     });
@@ -128,58 +133,35 @@ test.describe('Landing Page', () => {
     for (const cta of await ctas.all()) {
       await expect(cta).toBeVisible();
     }
-  });
 
-  test('Hero image should have an alt and a description', async ({
-    isMobile,
-    page
-  }) => {
+    // Hero image and description (desktop)
     const campersImage = page.getByAltText(
       translations.landing['hero-img-alt']
     );
     const captionText = page.getByText(
       translations.landing['hero-img-description']
     );
+    await expect(campersImage).toBeVisible();
+    await expect(captionText).toBeVisible();
 
-    if (isMobile) {
-      await expect(campersImage).toBeHidden();
-      await expect(captionText).toBeHidden();
-    } else {
-      await expect(campersImage).toBeVisible();
-      await expect(captionText).toBeVisible();
-    }
-  });
-
-  test('Has 5 brand logos', async ({ page }) => {
+    // Brand logos
     const logos = page.getByTestId('brand-logo-container').locator('svg');
     await expect(logos).toHaveCount(5);
     for (const logo of await logos.all()) {
       await expect(logo).toBeVisible();
     }
-  });
 
-  test('The campers landing page figure is visible on desktop and hidden on mobile view', async ({
-    page,
-    isMobile
-  }) => {
+    // Campers landing page figure
     const landingPageImage = page.getByTestId('landing-page-figure');
-    if (isMobile) {
-      await expect(landingPageImage).toBeHidden();
-    } else {
-      await expect(landingPageImage).toBeVisible();
-    }
-  });
+    await expect(landingPageImage).toBeVisible();
 
-  test('Testimonial section has a header', async ({ page }) => {
+    // Testimonial section header
     const testimonialsHeader = page.getByTestId('testimonials-section-header');
     await expect(testimonialsHeader).toHaveText(
       translations.landing.testimonials['heading']
     );
-  });
 
-  test('Testimonial endorser people have images, occupation, location and testimony visible', async ({
-    page
-  }) => {
+    // Testimonial cards
     const cards = page.getByTestId('testimonial-card');
     await expect(cards).toHaveCount(3);
     for (const card of await cards.all()) {
@@ -197,9 +179,8 @@ test.describe('Landing Page', () => {
         card.getByTestId('testimonials-endorser-testimony')
       ).toBeVisible();
     }
-  });
 
-  test('Links to all superblocks in order', async ({ page }) => {
+    // Curriculum buttons
     const curriculumBtns = page.getByTestId(landingPageElements.curriculumBtns);
     await expect(curriculumBtns).toHaveCount(superBlocks.length);
     for (let index = 0; index < superBlocks.length; index++) {
@@ -207,10 +188,30 @@ test.describe('Landing Page', () => {
       const link = btn.getByRole('link', { name: superBlocks[index] });
       await expect(link).toBeVisible();
     }
-  });
 
-  test('Has FAQ section', async ({ page }) => {
+    // FAQ section
     const faqs = page.getByTestId(landingPageElements.faq);
     await expect(faqs).toHaveCount(9);
+  });
+
+  test('Mobile - should render all elements correctly', async ({
+    page,
+    isMobile
+  }) => {
+    test.skip(!isMobile, 'This test only runs on mobile');
+
+    // Hero image and description (mobile)
+    const campersImage = page.getByAltText(
+      translations.landing['hero-img-alt']
+    );
+    const captionText = page.getByText(
+      translations.landing['hero-img-description']
+    );
+    await expect(campersImage).toBeHidden();
+    await expect(captionText).toBeHidden();
+
+    // Campers landing page figure
+    const landingPageImage = page.getByTestId('landing-page-figure');
+    await expect(landingPageImage).toBeHidden();
   });
 });
