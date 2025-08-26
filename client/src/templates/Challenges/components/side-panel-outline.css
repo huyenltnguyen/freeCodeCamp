@@ -1,0 +1,62 @@
+.side-panel-outline {
+  position: fixed;
+  top: calc(var(--header-height) + var(--breadcrumbs-height));
+  left: 8px;
+  bottom: 0;
+  width: 300px;
+  background: var(--secondary-background);
+  border-right: 1px solid var(--quaternary-background);
+  display: flex;
+  flex-direction: column;
+}
+
+.side-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--secondary-background);
+  border-bottom: 1px solid var(--quaternary-background);
+}
+
+.side-panel-nav {
+  /* Make this the scroll container so scrolling inside the panel
+     does not propagate to the main document. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 8px 16px;
+}
+
+.outline-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.outline-item {
+  margin: 16px 0;
+}
+
+.outline-item a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.outline-item a:hover, 
+.outline-item a:focus,
+.outline-item a:active {
+  text-decoration: underline;
+}
+
+.outline-item.level-2 { padding-left: 0; }
+.outline-item.level-3 { padding-left: 12px; }
+.outline-item.level-4 { padding-left: 24px; }
+.outline-item.level-5 { padding-left: 36px; }
+.outline-item.level-6 { padding-left: 48px; }
+
+.side-panel-collapsed {
+  position: fixed;
+  top: 120px;
+  left: 8px;
+}

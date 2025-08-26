@@ -1,5 +1,5 @@
 import { graphql } from 'gatsby';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import Helmet from 'react-helmet';
 import { useTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
@@ -29,11 +29,14 @@ import { isChallengeCompletedSelector } from '../redux/selectors';
 import { BlockTypes } from '../../../../../shared/config/blocks';
 import { getChallengePaths } from '../utils/challenge-paths';
 import Scene from '../components/scene/scene';
+import SidePanelOutline from '../components/side-panel-outline';
+import { challengeTypes } from '../../../../../shared/config/challenge-types';
 import MultipleChoiceQuestions from '../components/multiple-choice-questions';
 import ChallengeExplanation from '../components/challenge-explanation';
 import ChallengeTranscript from '../components/challenge-transcript';
 import HelpModal from '../components/help-modal';
 import { SceneSubject } from '../components/scene/scene-subject';
+import { processHeadingsInHtml } from '../utils/heading-processor';
 
 // Styles
 import './show.css';
@@ -196,6 +199,12 @@ const ShowGeneric = ({
 
   const sceneSubject = new SceneSubject();
 
+  const processedDescription = useMemo(() => {
+    return description
+      ? processHeadingsInHtml(description)
+      : { processedHtml: '', headings: [] };
+  }, [description]);
+
   return (
     <Hotkeys
       executeChallenge={handleSubmit}
@@ -219,13 +228,18 @@ const ShowGeneric = ({
             <Spacer size='m' />
 
             {description && (
-              <Col md={8} mdOffset={2} sm={10} smOffset={1} xs={12}>
-                <ChallengeDescription
-                  description={description}
-                  superBlock={superBlock}
-                />
-                <Spacer size='m' />
-              </Col>
+              <>
+                {challengeType === challengeTypes.generic && (
+                  <SidePanelOutline headings={processedDescription.headings} />
+                )}
+                <Col md={8} mdOffset={2} sm={10} smOffset={1} xs={12}>
+                  <ChallengeDescription
+                    description={processedDescription.processedHtml}
+                    superBlock={superBlock}
+                  />
+                  <Spacer size='m' />
+                </Col>
+              </>
             )}
 
             <Col lg={10} lgOffset={1} md={10} mdOffset={1}>
