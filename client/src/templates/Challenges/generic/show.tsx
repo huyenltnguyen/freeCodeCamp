@@ -36,7 +36,7 @@ import ChallengeExplanation from '../components/challenge-explanation';
 import ChallengeTranscript from '../components/challenge-transcript';
 import HelpModal from '../components/help-modal';
 import { SceneSubject } from '../components/scene/scene-subject';
-import { processHeadingsInHtml } from '../utils/heading-processor';
+import { assignIdToHeadings } from '../utils/challenge-description-processor';
 
 // Styles
 import './show.css';
@@ -201,7 +201,7 @@ const ShowGeneric = ({
 
   const processedDescription = useMemo(() => {
     return description
-      ? processHeadingsInHtml(description)
+      ? assignIdToHeadings(description)
       : { processedHtml: '', headings: [] };
   }, [description]);
 
