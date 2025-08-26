@@ -1,4 +1,4 @@
-.side-panel-outline {
+#side-panel-outline {
   position: fixed;
   top: calc(var(--header-height) + var(--breadcrumbs-height));
   left: 8px;
