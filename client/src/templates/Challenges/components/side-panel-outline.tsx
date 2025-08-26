@@ -106,17 +106,16 @@ const SidePanelOutline = ({ headings }: Props) => {
 
   if (!open) {
     return (
-      <div className='side-panel-collapsed'>
-        <Button
-          ref={triggerRef}
-          onClick={() => setOpen(true)}
-          aria-label={t('aria.content-outline')}
-          aria-controls='side-panel-outline'
-          aria-expanded={open}
-        >
-          <FontAwesomeIcon icon={faListUl} />
-        </Button>
-      </div>
+      <Button
+        ref={triggerRef}
+        onClick={() => setOpen(true)}
+        aria-label={t('aria.open-content-outline-panel')}
+        aria-controls='side-panel-outline'
+        aria-expanded={open}
+        className='side-panel-collapsed'
+      >
+        <FontAwesomeIcon icon={faListUl} />
+      </Button>
     );
   }
 
@@ -130,7 +129,7 @@ const SidePanelOutline = ({ headings }: Props) => {
       aria-hidden={!open}
     >
       <div className='side-panel-header'>
-        <h2>{t('aria.content-outline')}</h2>
+        <h2>{t('learn.content-outline')}</h2>
 
         <CloseButton
           onClick={() => setOpen(false)}

@@ -507,6 +507,7 @@
     "sign-in-see-benefits": "Sign in to see your supporter benefits",
     "card-has-been-updated": "Your card has been updated successfully.",
     "contact-support-mistake": "If you think there has been a mistake, please contact us at donors@freecodecamp.org",
+    "content-outline": "Content Outline",
     "editor-tabs": {
       "code": "Code",
       "tests": "Tests",
@@ -914,7 +915,7 @@
     "editor-a11y-on-non-macos": "{{editorName}} editor content. Accessibility mode set to 'on'. Press Ctrl+E to disable or press Alt+F1 for more options.",
     "terminal-output": "Terminal output",
     "not-available": "Not available",
-    "content-outline": "Content outline"
+    "open-content-outline-panel": "Open content outline panel"
   },
   "flash": {
     "no-email-in-userinfo": "We could not retrieve an email from your chosen provider. Please try another provider or use the 'Continue with Email' option.",
