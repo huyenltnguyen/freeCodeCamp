@@ -4,7 +4,7 @@
   left: 8px;
   bottom: 0;
   width: 300px;
-  background: var(--secondary-background);
+  background-color: var(--second-background);
   border-right: 1px solid var(--quaternary-background);
   display: flex;
   flex-direction: column;
@@ -16,7 +16,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  background: var(--secondary-background);
   border-bottom: 1px solid var(--quaternary-background);
 }
 

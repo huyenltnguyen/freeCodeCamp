@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, CloseButton, Spacer } from '@freecodecamp/ui';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faListUl } from '@fortawesome/free-solid-svg-icons';
-import { ProcessedHeading } from '../utils/heading-processor';
+import { ProcessedHeading } from '../utils/challenge-description-processor';
 import PrismFormatted from './prism-formatted';
 import './side-panel-outline.css';
 
@@ -75,8 +75,27 @@ const SidePanelOutline = ({ headings }: Props) => {
 
   const onLinkClick = (id: string) => {
     const element = document.getElementById(id);
+
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      let offset = 0;
+
+      // Find and measure the header element
+      const header = document.querySelector('.site-header');
+      if (header) {
+        offset += header.getBoundingClientRect().height;
+      }
+
+      // Find and measure the breadcrumbs element
+      const breadcrumbs = document.querySelector('.breadcrumbs-demo');
+      if (breadcrumbs) {
+        offset += breadcrumbs.getBoundingClientRect().height;
+      }
+
+      const elementTop = element.offsetTop - offset;
+      window.scrollTo({
+        top: elementTop,
+        behavior: 'smooth'
+      });
     }
   };
 
