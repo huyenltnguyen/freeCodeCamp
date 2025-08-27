@@ -1,52 +1,78 @@
 import {
-  assignIdToHeadings,
+  processHeadingsForNavigation,
   buildOutline,
   type ProcessedHeading
 } from './challenge-description-processor';
 
-describe('assignIdToHeadings', () => {
+describe('processHeadingsForNavigation', () => {
   it('should return empty headings for empty html', () => {
-    const result = assignIdToHeadings('');
+    const result = processHeadingsForNavigation('');
     expect(result.processedHtml).toBe('');
     expect(result.headings).toEqual([]);
   });
 
   it('should process single heading', () => {
-    const html = '<h2>Section Title</h2>';
-    const result = assignIdToHeadings(html);
+    const html = '<h2>Heading 2</h2>';
+    const result = processHeadingsForNavigation(html);
     expect(result.headings).toEqual([
       {
-        id: 'section-title',
-        text: 'Section Title',
+        id: 'heading-2',
+        text: 'Heading 2',
         level: 2
       }
     ]);
-    expect(result.processedHtml).toContain('id="section-title"');
+    expect(result.processedHtml).toContain('id="heading-2"');
   });
 
   it('should process multiple headings with correct levels and ids', () => {
-    const html = '<h1>Main</h1><h3>Sub</h3><h2>Another</h2>';
-    const result = assignIdToHeadings(html);
+    const html = '<h1>Heading 1</h1><h3>Heading 3</h3><h2>Heading 2</h2>';
+    const result = processHeadingsForNavigation(html);
     expect(result.headings).toEqual([
-      { id: 'main', text: 'Main', level: 1 },
-      { id: 'sub', text: 'Sub', level: 3 },
-      { id: 'another', text: 'Another', level: 2 }
+      { id: 'heading-1', text: 'Heading 1', level: 1 },
+      { id: 'heading-3', text: 'Heading 3', level: 3 },
+      { id: 'heading-2', text: 'Heading 2', level: 2 }
     ]);
-    expect(result.processedHtml).toContain('id="main"');
-    expect(result.processedHtml).toContain('id="sub"');
-    expect(result.processedHtml).toContain('id="another"');
+    expect(result.processedHtml).toContain('id="heading-1"');
+    expect(result.processedHtml).toContain('id="heading-3"');
+    expect(result.processedHtml).toContain('id="heading-2"');
   });
 
   it('should preserve innerHTML for headings', () => {
     const html = '<h2><code>Fancy</code> Heading</h2>';
-    const result = assignIdToHeadings(html);
-    expect(result.headings[0].text).toBe('<code>Fancy</code> Heading');
+    const result = processHeadingsForNavigation(html);
+    expect(result.headings).toEqual([
+      {
+        id: 'fancy-heading',
+        text: '<code>Fancy</code> Heading',
+        level: 2
+      }
+    ]);
   });
 
   it('should handle headings with special characters', () => {
     const html = '<h2>Title! @#%$^&*</h2>';
-    const result = assignIdToHeadings(html);
-    expect(result.headings[0].id).toBe('title');
+    const result = processHeadingsForNavigation(html);
+    expect(result.headings).toEqual([
+      { id: 'title', text: 'Title! @#%$^&amp;*', level: 2 }
+    ]);
+  });
+
+  it('should add tabindex="-1" to heading elements only', () => {
+    const html = '<div><h2>Heading 2</h2><h3>Heading 3</h3></div>';
+    const result = processHeadingsForNavigation(html);
+
+    // The wrapper div should not receive tabindex
+    expect(result.processedHtml).toContain('<div>');
+    expect(result.processedHtml).not.toContain('<div tabindex="-1"');
+
+    // Headings should receive tabindex
+    expect(result.processedHtml).toContain('<h2 id="heading-2" tabindex="-1"');
+    expect(result.processedHtml).toContain('<h3 id="heading-3" tabindex="-1"');
+
+    expect(result.headings).toEqual([
+      { id: 'heading-2', text: 'Heading 2', level: 2 },
+      { id: 'heading-3', text: 'Heading 3', level: 3 }
+    ]);
   });
 });
 

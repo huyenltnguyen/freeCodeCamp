@@ -12,13 +12,17 @@ test.describe('Side Panel Outline', () => {
     const toggle = page.getByRole('button', {
       name: translations.aria['open-content-outline-panel']
     });
+
     await expect(toggle).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-controls', 'side-panel-outline');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
     // Open the panel
     await toggle.click();
 
     const panel = page.getByRole('complementary');
     await expect(panel).toBeVisible();
+    await expect(panel).toHaveId('side-panel-outline');
 
     const outlineLists = panel.getByRole('list');
     const listCount = await outlineLists.count();
@@ -45,6 +49,15 @@ test.describe('Side Panel Outline', () => {
       expect(headingId).toBeTruthy();
       expect(href).toBe(`#${headingId}`);
     }
+
+    // Click the last link in the panel
+    await links.last().click();
+
+    // The corresponding heading should now be focused
+    const href = await links.last().getAttribute('href');
+    const headingId = href!.replace('#', '');
+
+    await expect(page.locator(`#${headingId}`)).toBeFocused();
   });
 
   test('should close panel on Escape and return focus to toggle', async ({
@@ -62,6 +75,7 @@ test.describe('Side Panel Outline', () => {
     await page.keyboard.press('Escape');
 
     await expect(panel).not.toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(toggle).toBeFocused();
   });
 });

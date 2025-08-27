@@ -20,7 +20,7 @@ const slugify = (text: string) =>
     .replace(/-+/g, '-')
     .replace(/^[-]+|[-]+$/g, '');
 
-export const assignIdToHeadings = (
+export const processHeadingsForNavigation = (
   html: string
 ): {
   processedHtml: string;
@@ -46,6 +46,11 @@ export const assignIdToHeadings = (
 
     if (!el.id) {
       el.id = id;
+    }
+
+    // Add tabindex="-1" to make headings focusable for navigation
+    if (!el.hasAttribute('tabindex')) {
+      el.setAttribute('tabindex', '-1');
     }
 
     headings.push({ id, text: inner, level });

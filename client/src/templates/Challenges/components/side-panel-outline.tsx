@@ -66,10 +66,17 @@ const SidePanelOutline = ({ headings }: Props) => {
       }
 
       const elementTop = element.offsetTop - offset;
+      const prefersReduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+
       window.scrollTo({
         top: elementTop,
-        behavior: 'smooth'
+        behavior: prefersReduced ? 'auto' : 'smooth'
       });
+
+      // Move focus to the target heading
+      element.focus();
     }
   };
 
@@ -119,7 +126,6 @@ const SidePanelOutline = ({ headings }: Props) => {
         panelRef.current = el;
       }}
       tabIndex={-1}
-      aria-hidden={!open}
     >
       <div className='side-panel-header'>
         <h2>{t('learn.content-outline')}</h2>
