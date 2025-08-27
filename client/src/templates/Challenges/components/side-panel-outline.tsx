@@ -3,46 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { Button, CloseButton, Spacer } from '@freecodecamp/ui';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faListUl } from '@fortawesome/free-solid-svg-icons';
-import { ProcessedHeading } from '../utils/challenge-description-processor';
+import {
+  buildOutline,
+  type OutlineHeading,
+  type ProcessedHeading
+} from '../utils/challenge-description-processor';
 import PrismFormatted from './prism-formatted';
 import './side-panel-outline.css';
 
-type Heading = {
-  id: string;
-  text: string;
-  level: number;
-  children: Heading[];
-};
-
-type Props = {
+interface Props {
   headings: ProcessedHeading[];
-};
-
-const buildOutline = (headings: ProcessedHeading[]): Heading[] => {
-  const root: Heading[] = [];
-  const stack: Heading[] = [];
-
-  headings.forEach(({ text, level, id }) => {
-    const node: Heading = { id, text, level, children: [] };
-
-    while (stack.length > 0 && level <= stack[stack.length - 1].level) {
-      stack.pop();
-    }
-
-    if (stack.length === 0) {
-      root.push(node);
-    } else {
-      stack[stack.length - 1].children.push(node);
-    }
-
-    stack.push(node);
-  });
-
-  return root;
-};
+}
 
 const renderOutline = (
-  nodes: Heading[],
+  nodes: OutlineHeading[],
   onLinkClick: (id: string) => void
 ): JSX.Element[] => {
   return nodes.map(node => (

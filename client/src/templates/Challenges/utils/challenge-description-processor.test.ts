@@ -1,4 +1,8 @@
-import { assignIdToHeadings } from './challenge-description-processor';
+import {
+  assignIdToHeadings,
+  buildOutline,
+  type ProcessedHeading
+} from './challenge-description-processor';
 
 describe('assignIdToHeadings', () => {
   it('should return empty headings for empty html', () => {
@@ -43,5 +47,76 @@ describe('assignIdToHeadings', () => {
     const html = '<h2>Title! @#%$^&*</h2>';
     const result = assignIdToHeadings(html);
     expect(result.headings[0].id).toBe('title');
+  });
+});
+
+describe('buildOutline', () => {
+  it('should create a flat outline for same-level headings', () => {
+    const input: ProcessedHeading[] = [
+      { id: 'heading-2-a', text: 'Heading 2 - A', level: 2 },
+      { id: 'heading-2-b', text: 'Heading 2 - B', level: 2 },
+      { id: 'heading-2-c', text: 'Heading 2 - C', level: 2 }
+    ];
+
+    const out = buildOutline(input);
+    expect(out).toHaveLength(3);
+    expect(out.map(n => n.id)).toEqual([
+      'heading-2-a',
+      'heading-2-b',
+      'heading-2-c'
+    ]);
+  });
+
+  it('should nest headings correctly when levels increase', () => {
+    const input: ProcessedHeading[] = [
+      { id: 'heading-2', text: 'Heading 2', level: 2 },
+      { id: 'heading-3', text: 'Heading 3', level: 3 },
+      { id: 'heading-4', text: 'Heading 4', level: 4 }
+    ];
+
+    const out = buildOutline(input);
+    expect(out).toHaveLength(1);
+    expect(out).toMatchObject([
+      {
+        id: 'heading-2',
+        children: [
+          {
+            id: 'heading-3',
+            children: [
+              {
+                id: 'heading-4',
+                children: []
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
+
+  it('should handle decreasing heading levels correctly', () => {
+    const input: ProcessedHeading[] = [
+      { id: 'heading-2-a', text: 'Heading 2 - A', level: 2 },
+      { id: 'heading-3', text: 'Heading 3', level: 3 },
+      { id: 'heading-2-b', text: 'Heading 2 - B', level: 2 }
+    ];
+
+    const out = buildOutline(input);
+    expect(out).toHaveLength(2);
+    expect(out).toMatchObject([
+      {
+        id: 'heading-2-a',
+        children: [
+          {
+            id: 'heading-3',
+            children: []
+          }
+        ]
+      },
+      {
+        id: 'heading-2-b',
+        children: []
+      }
+    ]);
   });
 });
