@@ -8,6 +8,7 @@
   border-right: 1px solid var(--quaternary-background);
   display: flex;
   flex-direction: column;
+  z-index: 10;
 }
 
 .side-panel-header {

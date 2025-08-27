@@ -36,6 +36,9 @@ textarea.inputarea {
   margin: 0;
   padding: 10px;
   height: var(--breadcrumbs-height);
+  position: fixed;
+  width: 100%;
+  background-color: var(--secondary-background);
 }
 
 @media screen and (max-height: 300px) {
