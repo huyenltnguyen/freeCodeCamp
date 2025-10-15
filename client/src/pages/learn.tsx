@@ -100,7 +100,7 @@ function LearnPage({
             {clientLocale === 'english' ? null : (
               <>
                 <Spacer size='m' />
-                <Callout variant='info'>
+                <Callout variant='note' label={t('callout.note-label')}>
                   <p className='text-center'>
                     <strong style={{ color: 'var(--blue-dark)' }}>
                       Warning: The localized content in this language is not

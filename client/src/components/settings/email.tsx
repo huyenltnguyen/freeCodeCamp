@@ -169,7 +169,8 @@ function EmailSettings({
         <FullWidthRow>
           <HelpBlock>
             <Callout
-              variant='info'
+              variant='note'
+              label={t('callout.note-label')}
               className='text-center'
               data-playwright-test-label='email-verification-alert'
             >

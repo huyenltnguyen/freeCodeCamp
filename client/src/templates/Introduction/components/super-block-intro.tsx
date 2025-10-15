@@ -68,7 +68,11 @@ export const ConditionalDonationAlert = ({
 
   if (!isDonating && betaCertifications.includes(superBlock))
     return (
-      <Callout variant='info' className='annual-donation-alert'>
+      <Callout
+        variant='note'
+        label={t('callout.note-label')}
+        className='annual-donation-alert'
+      >
         <p>{t('donate.beta-certification')}</p>
         <hr />
         <p className='btn-container'>
@@ -87,7 +91,11 @@ export const ConditionalDonationAlert = ({
 
   if (!isDonating && unfinishedCertifications.includes(superBlock))
     return (
-      <Callout variant='info' className='annual-donation-alert'>
+      <Callout
+        variant='note'
+        label={t('callout.note-label')}
+        className='annual-donation-alert'
+      >
         <p>
           <Trans i18nKey='donate.consider-donating-2'>
             <Link className='inline' to='/donate'>
@@ -160,7 +168,9 @@ function SuperBlockIntro({
       {superBlockNoteText && (
         <>
           <Spacer size='m' />
-          <Callout variant='info'>{superBlockNoteText}</Callout>
+          <Callout variant='note' label={t('callout.note-label')}>
+            {superBlockNoteText}
+          </Callout>
         </>
       )}
     </>
@@ -178,7 +188,9 @@ function SuperBlockIntro({
       {superBlockNoteText && (
         <>
           <Spacer size='m' />
-          <Callout variant='info'>{superBlockNoteText}</Callout>
+          <Callout variant='note' label={t('callout.note-label')}>
+            {superBlockNoteText}
+          </Callout>
         </>
       )}
       <Spacer size='s' />

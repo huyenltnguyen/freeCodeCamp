@@ -1067,6 +1067,12 @@
     },
     "classroom-mode-updated": "We have updated your classroom mode settings"
   },
+  "callout": {
+    "tip-label": "Tip",
+    "note-label": "Note",
+    "warning-label": "Warning",
+    "caution-label": "Caution"
+  },
   "validation": {
     "max-characters": "There is a maximum limit of 288 characters, you have {{charsLeft}} left",
     "same-email": "This email is the same as your current email",

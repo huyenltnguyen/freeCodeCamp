@@ -232,7 +232,7 @@ function DailyCodingChallengeCalendar({
   return (
     <>
       <Col md={8} mdOffset={2} sm={10} smOffset={1} xs={12}>
-        <Callout variant='info'>
+        <Callout variant='note' label={t('callout.note-label')}>
           {t('daily-coding-challenges.release-note')}
         </Callout>
 

@@ -19,7 +19,11 @@ const LearnAlert = ({
   const progressAlertFlag2024 = useFeature('progress-alert-2024');
   const createUniversityFlag = useFeature('university-alert');
   const progressAlertDefault = (text: string, value?: number) => (
-    <Callout variant='info' className='annual-donation-alert'>
+    <Callout
+      variant='note'
+      label={t('callout.note-label')}
+      className='annual-donation-alert'
+    >
       {value && (
         <>
           <div className='text-center'>
@@ -51,7 +55,11 @@ const LearnAlert = ({
   );
 
   const seasonalAlertFlagAlert = (
-    <Callout variant='info' className='annual-donation-alert'>
+    <Callout
+      variant='note'
+      label={t('callout.note-label')}
+      className='annual-donation-alert'
+    >
       <p>
         <b>{t('learn.season-greetings-fcc')}</b>
       </p>
@@ -77,7 +85,11 @@ const LearnAlert = ({
   );
 
   const universityAlert = (
-    <Callout variant='info' className='university-alert'>
+    <Callout
+      variant='note'
+      label={t('callout.note-label')}
+      className='university-alert'
+    >
       <p>
         <b>{t('learn.building-a-university')}</b>
       </p>
