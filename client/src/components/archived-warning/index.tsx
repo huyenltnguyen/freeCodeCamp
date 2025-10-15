@@ -9,13 +9,15 @@ import './index.css';
 const ArchivedWarning = () => {
   const { t } = useTranslation();
   return (
-    <Callout variant='note' label={t('callout.note-label')}>
-      <p className='text-center archived-warning'>
-        <Trans i18nKey='learn.archive.content-not-updated'>
-          <strong>placeholder</strong>
-          <Link to={'/learn/full-stack-developer'}>placeholder</Link>
-        </Trans>
-      </p>
+    <Callout
+      variant='note'
+      label={t('callout.note-label')}
+      className='archived-warning'
+    >
+      <Trans i18nKey='learn.archive.content-not-updated'>
+        <strong>placeholder</strong>
+        <Link to={'/learn/full-stack-developer'}>placeholder</Link>s{' '}
+      </Trans>
     </Callout>
   );
 };
