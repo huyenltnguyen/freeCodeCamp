@@ -3,7 +3,11 @@ import parseFixture from '../__fixtures__/parse-fixture';
 import addVideoQuestion from './add-video-question';
 
 describe('add-video-question plugin', () => {
-  let simpleAST, videoAST, multipleQuestionAST, videoOutOfOrderAST;
+  let simpleAST,
+    videoAST,
+    multipleQuestionAST,
+    videoOutOfOrderAST,
+    chineseVideoAST;
   const plugin = addVideoQuestion();
   let file = { data: {} };
 
@@ -16,6 +20,7 @@ describe('add-video-question plugin', () => {
     videoOutOfOrderAST = await parseFixture(
       'with-video-question-out-of-order.md'
     );
+    chineseVideoAST = await parseFixture('with-mcq-chinese.md');
   });
 
   beforeEach(() => {
@@ -104,5 +109,44 @@ describe('add-video-question plugin', () => {
   it('should match the video snapshot', () => {
     plugin(videoAST, file);
     expect(file.data).toMatchSnapshot();
+  });
+
+  it('should render Chinese inline code as ruby in question text, answers, and feedback', async () => {
+    const zhFile = { data: { lang: 'zh-CN' } };
+
+    plugin(chineseVideoAST, zhFile);
+
+    expect(zhFile.data.questions).toBeDefined();
+    expect(zhFile.data.questions.length).toBe(1);
+
+    const question = zhFile.data.questions[0];
+
+    // Check question text contains ruby
+    expect(question.text).toContain('Wang Hua');
+
+    // Check answers contain ruby elements
+    const answer1 = question.answers[0];
+    expect(answer1.answer).toContain(
+      '<ruby>你好<rp>(</rp><rt>nǐ hǎo</rt><rp>)</rp></ruby>'
+    );
+    expect(answer1.feedback).toContain('"hello"');
+
+    const answer2 = question.answers[1];
+    expect(answer2.answer).toContain(
+      '<ruby>请<rp>(</rp><rt>qǐng</rt><rp>)</rp></ruby>'
+    );
+    expect(answer2.feedback).toContain('"please"');
+
+    const answer3 = question.answers[2];
+    expect(answer3.answer).toContain(
+      '<ruby>请问<rp>(</rp><rt>qǐng wèn</rt><rp>)</rp></ruby>'
+    );
+    expect(answer3.feedback).toBe(null);
+
+    const answer4 = question.answers[3];
+    expect(answer4.answer).toContain(
+      '<ruby>问<rp>(</rp><rt>wèn</rt><rp>)</rp></ruby>'
+    );
+    expect(answer4.feedback).toContain('"to ask"');
   });
 });

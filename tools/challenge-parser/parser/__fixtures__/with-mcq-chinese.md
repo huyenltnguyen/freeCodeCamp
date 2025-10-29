@@ -1,12 +1,9 @@
 ---
-id: 68fe222654ed3a27dca71523
-title: Task 5
-challengeType: 19
-dashedName: task-5
+id: test-chinese-inline
+title: Ruby Test
 lang: zh-CN
+challengeType: 19
 ---
-
-<!-- (Audio) Wang Hua: 请问 (qǐng wèn) -->
 
 # --instructions--
 
@@ -52,4 +49,4 @@ This means "to ask", and it's the verb used in the question.
 
 # --explanation--
 
-Wang Hua uses `请问 (qǐng wèn)` to politely start her question. This word means "excuse me" and is commonly used in Chinese to show respect when asking questions.
+Wang Hua uses `请问 (qǐng wèn)` to politely start her question.

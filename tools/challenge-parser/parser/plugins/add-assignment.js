@@ -9,15 +9,19 @@ function plugin() {
   function transformer(tree, file) {
     const assignmentNodes = getSection(tree, '--assignment--');
 
-    const assignment = getAssignments(assignmentNodes).filter(a => a != '');
+    const assignment = getAssignments(assignmentNodes, file.data.lang).filter(
+      a => a != ''
+    );
 
     file.data.assignments = assignment;
   }
 
-  function getAssignments(assignmentNodes) {
+  function getAssignments(assignmentNodes, lang) {
     const assignmentGroups = splitOnThematicBreak(assignmentNodes);
 
-    return assignmentGroups.map(assignment => mdastToHtml(assignment));
+    return assignmentGroups.map(assignment =>
+      mdastToHtml(assignment, { lang })
+    );
   }
 }
 
