@@ -52,6 +52,15 @@ function FillInTheBlanks({
               {p.map((node, j) => {
                 const { type, value } = node;
                 if (type === 'text') {
+                  // TODO: Change this to check `lang`
+                  if (value.includes('<')) {
+                    return (
+                      <span
+                        key={j}
+                        dangerouslySetInnerHTML={{ __html: value }}
+                      />
+                    );
+                  }
                   return value;
                 }
 

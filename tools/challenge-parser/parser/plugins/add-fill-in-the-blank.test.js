@@ -8,7 +8,8 @@ describe('fill-in-the-blanks plugin', () => {
     mockFillInTheBlankTwoSentencesAST,
     mockFillInTheBlankBadSentence,
     mockFillInTheBlankBadParagraph,
-    mockFillInTheBlankMultipleBlanks;
+    mockFillInTheBlankMultipleBlanks,
+    chineseFillInTheBlankAST;
   const plugin = addFillInTheBlankQuestion();
   let file = { data: {} };
 
@@ -28,6 +29,9 @@ describe('fill-in-the-blanks plugin', () => {
     );
     mockFillInTheBlankMultipleBlanks = await parseFixture(
       'with-fill-in-the-blank-many-blanks.md'
+    );
+    chineseFillInTheBlankAST = await parseFixture(
+      'with-fill-in-the-blank-chinese.md'
     );
   });
 
@@ -166,5 +170,33 @@ Example of good formatting:
       feedback:
         '<p>The verb <code>to be</code> is an irregular verb. When conjugated with the pronoun <code>you</code>, <code>be</code> becomes <code>are</code>. For example: <code>You are an English learner.</code></p>'
     });
+  });
+
+  it('should process Chinese fill-in-the-blank with lang zh-CN', () => {
+    const zhFile = { data: { lang: 'zh-CN' } };
+
+    plugin(chineseFillInTheBlankAST, zhFile);
+    const testObject = zhFile.data.fillInTheBlank;
+
+    // Should have only 1 blank (hanzi) in the blanks array, pinyin blank is filtered out
+    expect(testObject.blanks.length).toBe(1);
+    expect(testObject.blanks[0].answer).toBe('我是');
+
+    // Sentence should have 2 BLANKs (one visible hanzi BLANK, one hidden pinyin BLANK in sr-only)
+    expect((testObject.sentence.match(/BLANK/g) || []).length).toBe(2);
+
+    // Verify Chinese text is rendered as ruby elements (case: both hanzi and pinyin are text)
+    expect(testObject.sentence).toContain(
+      '<ruby>你好<rp>(</rp><rt>nǐ hǎo</rt><rp>)</rp></ruby>'
+    );
+    expect(testObject.sentence).toContain(
+      '<ruby>王华<rp>(</rp><rt>wáng huá</rt><rp>)</rp></ruby>'
+    );
+
+    // Verify BLANK pair handling (case: both hanzi and pinyin are BLANK)
+    // The pinyin BLANK should be kept as literal "BLANK" text and hidden with sr-only class
+    expect(testObject.sentence).toContain(
+      '<span class="sr-only">(BLANK)</span>'
+    );
   });
 });

@@ -4,6 +4,7 @@ const visit = require('unist-util-visit');
 const { getSection } = require('./utils/get-section');
 const getAllBefore = require('./utils/before-heading');
 const mdastToHtml = require('./utils/mdast-to-html');
+const { processChineseFillInBlank } = require('./utils/get-chinese-text');
 
 const { splitOnThematicBreak } = require('./utils/split-on-thematic-break');
 
@@ -45,7 +46,9 @@ function plugin() {
       const sentenceNodes = getSection(fillInTheBlankTree, '--sentence--');
       const blanksNodes = getSection(fillInTheBlankTree, '--blanks--');
 
-      const fillInTheBlank = getfillInTheBlank(sentenceNodes, blanksNodes);
+      const fillInTheBlank = getfillInTheBlank(sentenceNodes, blanksNodes, {
+        lang: file.data.lang
+      });
 
       file.data.fillInTheBlank = fillInTheBlank;
     }
@@ -64,7 +67,7 @@ function validateBlanksCount(fillInTheBlankTree) {
     );
 }
 
-function getfillInTheBlank(sentenceNodes, blanksNodes) {
+function getfillInTheBlank(sentenceNodes, blanksNodes, { lang } = {}) {
   const sentenceWithoutCodeBlocks = sentenceNodes.map(node => {
     node.children.forEach(child => {
       if (child.type === 'text' && child.value.trim() === '')
@@ -75,8 +78,8 @@ function getfillInTheBlank(sentenceNodes, blanksNodes) {
     const children = node.children.map(child => ({ ...child, type: 'text' }));
     return { ...node, children };
   });
-  const sentence = mdastToHtml(sentenceWithoutCodeBlocks);
-  const blanks = getBlanks(blanksNodes);
+  let sentence = mdastToHtml(sentenceWithoutCodeBlocks, { lang });
+  let blanks = getBlanks(blanksNodes);
 
   if (!sentence) throw Error('sentence is missing from fill in the blank');
   if (!blanks) throw Error('blanks are missing from fill in the blank');
@@ -84,6 +87,13 @@ function getfillInTheBlank(sentenceNodes, blanksNodes) {
     throw Error(
       `Number of underscores in sentence doesn't match the number of blanks`
     );
+
+  // For Chinese fill-in-the-blank, process sentence and filter out pinyin blanks
+  if (lang === 'zh-CN') {
+    const result = processChineseFillInBlank(sentence, blanks);
+    sentence = result.sentence;
+    blanks = result.blanks;
+  }
 
   return { sentence, blanks };
 }
