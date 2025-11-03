@@ -409,9 +409,10 @@ exports.createSchemaCustomization = ({ actions }) => {
     type FillInTheBlank {
       sentence: String
       blanks: [Blank]
+      inputType: String
     }
     type Blank {
-      answer: String
+      answer: JSON
       feedback: String
     }
     type Scene {

@@ -25,6 +25,16 @@ function parseChinesePattern(text) {
  * @returns {object} Hast element node
  */
 function chineseInlineCodeHandler(state, node) {
+  // Handle Chinese fill-in-the-blank
+  if (node.value.includes('BLANK')) {
+    const rubySegments = chineseTextToRubySegments(node.value);
+
+    return {
+      type: 'raw',
+      value: rubySegments
+    };
+  }
+
   const parsed = parseChinesePattern(node.value);
 
   if (parsed) {
@@ -66,6 +76,53 @@ function chineseInlineCodeHandler(state, node) {
   };
 }
 
+/**
+ * Splits Chinese text by BLANK and converts each segment to ruby HTML,
+ * with BLANK tokens preserved between segments.
+ *
+ * Example:
+ *   Input: "你BLANK我 (nǐ BLANK wǒ)"
+ *   Output: "<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby>我<rp>(</rp><rt>wǒ</rt><rp>)</rp></ruby>"
+ *
+ * @param {string} text - Text in format: hanzi (pinyin) with BLANKs
+ * @returns {string} HTML with ruby elements separated by BLANK tokens
+ */
+function chineseTextToRubySegments(text) {
+  const parsed = parseChinesePattern(text);
+
+  if (!parsed) {
+    return text;
+  }
+
+  const { hanzi, pinyin } = parsed;
+
+  const hanziParts = hanzi.split('BLANK');
+  const pinyinParts = pinyin.split('BLANK');
+
+  // Build output by iterating through segments and preserving BLANK positions
+  const result = [];
+
+  for (let i = 0; i < hanziParts.length; i++) {
+    const hanziPart = hanziParts[i].trim();
+
+    // Only create ruby element for non-empty hanzi segments
+    if (hanziPart) {
+      const pinyinPart = (pinyinParts[i] || '').trim();
+      result.push(
+        `<ruby>${hanziPart}<rp>(</rp><rt>${pinyinPart}</rt><rp>)</rp></ruby>`
+      );
+    }
+
+    // Add BLANK after each segment except the last one
+    // This preserves the original number of BLANKs in the input
+    if (i < hanziParts.length - 1) {
+      result.push('BLANK');
+    }
+  }
+
+  return result.join('');
+}
+
 const rubyOptions = {
   handlers: {
     inlineCode: chineseInlineCodeHandler
@@ -75,4 +132,8 @@ const rubyOptions = {
 const createMdastToHtml = lang =>
   lang == 'zh-CN' ? x => mdastToHTML(x, rubyOptions) : mdastToHTML;
 
-module.exports = { parseChinesePattern, createMdastToHtml };
+module.exports = {
+  parseChinesePattern,
+  chineseTextToRubySegments,
+  createMdastToHtml
+};

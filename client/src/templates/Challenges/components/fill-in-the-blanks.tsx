@@ -4,7 +4,10 @@ import { Spacer } from '@freecodecamp/ui';
 
 import { parseBlanks } from '../fill-in-the-blank/parse-blanks';
 import PrismFormatted from '../components/prism-formatted';
-import { FillInTheBlank } from '../../../redux/prop-types';
+import {
+  FillInTheBlank,
+  FillInTheBlankAnswerData
+} from '../../../redux/prop-types';
 import ChallengeHeading from './challenge-heading';
 
 type FillInTheBlankProps = {
@@ -36,6 +39,29 @@ function FillInTheBlanks({
     return cls;
   };
 
+  const renderAnswer = (answer: FillInTheBlankAnswerData): React.ReactNode => {
+    if (answer.type === 'text') {
+      return answer.value;
+    }
+
+    // Render Chinese with both hanzi and pinyin as ruby
+    return (
+      <ruby>
+        {answer.value.hanzi}
+        <rp>(</rp>
+        <rt>{answer.value.pinyin}</rt>
+        <rp>)</rp>
+      </ruby>
+    );
+  };
+
+  const getAnswerLength = (answer: FillInTheBlankAnswerData): number => {
+    if (answer.type === 'text') {
+      return answer.value.length;
+    }
+    return answer.value.hanzi.length;
+  };
+
   const paragraphs = parseBlanks(sentence);
   const blankAnswers = blanks.map(b => b.answer);
 
@@ -59,20 +85,22 @@ function FillInTheBlanks({
                 if (type === 'blank' && answersCorrect[value] === true) {
                   return (
                     <span key={j} className='correct-blank-answer'>
-                      {blankAnswers[value]}
+                      {renderAnswer(blankAnswers[value])}
                     </span>
                   );
                 }
+
+                const answerLength = getAnswerLength(blankAnswers[value]);
 
                 return (
                   <input
                     key={j}
                     type='text'
-                    maxLength={blankAnswers[value].length + 3}
+                    maxLength={answerLength + 3}
                     className={getInputClass(value)}
                     onChange={handleInputChange}
                     data-index={node.value}
-                    size={blankAnswers[value].length}
+                    size={answerLength}
                     autoComplete='off'
                     aria-label={t('learn.fill-in-the-blank.blank')}
                     {...(answersCorrect[value] === false

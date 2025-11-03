@@ -224,11 +224,26 @@ const schema = Joi.object().keys({
     blanks: Joi.array()
       .items(
         Joi.object().keys({
-          answer: Joi.string().required(),
+          answer: Joi.object()
+            .keys({
+              type: Joi.string().valid('text', 'hanzi-pinyin').required(),
+              value: Joi.when('type', {
+                is: 'text',
+                then: Joi.string().required(),
+                otherwise: Joi.object()
+                  .keys({
+                    hanzi: Joi.string().required(),
+                    pinyin: Joi.string().required()
+                  })
+                  .required()
+              })
+            })
+            .required(),
           feedback: Joi.string().allow(null)
         })
       )
-      .required()
+      .required(),
+    inputType: Joi.string().optional()
   }),
   forumTopicId: Joi.number(),
   id: Joi.objectId().required(),

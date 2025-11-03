@@ -40,6 +40,28 @@ type MultipleChoiceAnswer = {
   audioId: string | null;
 };
 
+type FillInTheBlankAnswerText = {
+  type: 'text';
+  value: string;
+};
+
+type FillInTheBlankAnswerHanziPinyin = {
+  type: 'hanzi-pinyin';
+  value: {
+    hanzi: string;
+    pinyin: string;
+  };
+};
+
+export type FillInTheBlankAnswerData =
+  | FillInTheBlankAnswerText
+  | FillInTheBlankAnswerHanziPinyin;
+
+type FillInTheBlankAnswer = {
+  answer: FillInTheBlankAnswerData;
+  feedback: string | null;
+};
+
 export type Question = {
   text: string;
   answers: MultipleChoiceAnswer[];
@@ -48,7 +70,8 @@ export type Question = {
 
 export type FillInTheBlank = {
   sentence: string;
-  blanks: MultipleChoiceAnswer[];
+  blanks: FillInTheBlankAnswer[];
+  inputType?: string;
 };
 
 export type Fields = {

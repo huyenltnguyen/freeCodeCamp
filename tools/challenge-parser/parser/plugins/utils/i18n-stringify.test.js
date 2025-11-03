@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { createMdastToHtml, parseChinesePattern } from './i18n-stringify';
+import {
+  createMdastToHtml,
+  parseChinesePattern,
+  chineseTextToRubySegments
+} from './i18n-stringify';
 
 describe('parseChinesePattern', () => {
   it('should parse Chinese text with hanzi and pinyin', () => {
@@ -125,5 +129,47 @@ describe('createMdastToHtml', () => {
     ];
     const actual = toHtml(nodes);
     expect(actual).toBe('<p><code>请问 (qǐng wèn)</code></p>');
+  });
+});
+
+describe('chineseTextToRubySegments', () => {
+  it('should convert hanzi and pinyin to ruby HTML', () => {
+    const result = chineseTextToRubySegments('你好 (nǐ hǎo)');
+    expect(result).toBe('<ruby>你好<rp>(</rp><rt>nǐ hǎo</rt><rp>)</rp></ruby>');
+  });
+
+  it('should handle BLANK in hanzi and pinyin', () => {
+    const result = chineseTextToRubySegments('你BLANK (nǐ BLANK)');
+    expect(result).toBe(
+      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>'
+    );
+  });
+
+  it('should handle multiple BLANKs', () => {
+    const result = chineseTextToRubySegments(
+      '你BLANK我BLANK (nǐ BLANK wǒ BLANK)'
+    );
+    expect(result).toBe(
+      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby>我<rp>(</rp><rt>wǒ</rt><rp>)</rp></ruby>BLANK<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>'
+    );
+  });
+
+  it('should handle spaces around BLANK tokens', () => {
+    const result = chineseTextToRubySegments(
+      '你 BLANK 我 BLANK (nǐ BLANK wǒ BLANK)'
+    );
+    expect(result).toBe(
+      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby>我<rp>(</rp><rt>wǒ</rt><rp>)</rp></ruby>BLANK<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>'
+    );
+  });
+
+  it('should return input as-is for non-matching text', () => {
+    const result = chineseTextToRubySegments('你好');
+    expect(result).toBe('你好');
+  });
+
+  it('should return input as-is for empty string', () => {
+    const result = chineseTextToRubySegments('');
+    expect(result).toBe('');
   });
 });
