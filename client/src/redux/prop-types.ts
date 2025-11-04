@@ -71,7 +71,6 @@ export type Question = {
 export type FillInTheBlank = {
   sentence: string;
   blanks: FillInTheBlankAnswer[];
-  inputType?: string;
 };
 
 export type Fields = {

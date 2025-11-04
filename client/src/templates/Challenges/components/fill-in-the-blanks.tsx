@@ -59,6 +59,9 @@ function FillInTheBlanks({
     if (answer.type === 'text') {
       return answer.value.length;
     }
+
+    // TODO: Calculate the answer length with pinyin + tone
+    // https://github.com/freeCodeCamp/language-curricula/issues/18
     return answer.value.hanzi.length;
   };
 

@@ -80,40 +80,81 @@ function getfillInTheBlank(sentenceNodes, blanksNodes, { lang, inputType }) {
     return { ...node, children };
   });
 
-  // Extract text for BLANK counting (no need to convert to HTML)
-  let sentenceForCounting;
-
   if (lang === 'zh-CN') {
-    // For Chinese, extract only hanzi portions
-    sentenceForCounting = extractHanziForCounting(sentenceNodes);
-  } else {
-    // For non-Chinese, just concatenate all text values
-    sentenceForCounting = sentenceNodes
-      .map(node => node.children.map(child => child.value || '').join(''))
-      .join('');
+    return getChineseFillInTheBlank(
+      sentenceNodes,
+      sentenceWithoutCodeBlocks,
+      blanksNodes,
+      { inputType }
+    );
   }
 
-  const sentence = mdastToHtml(sentenceWithoutCodeBlocks, { lang });
-  const blanks = getBlanks(blanksNodes, lang);
+  // Original logic for non-Chinese challenges
+  const sentence = mdastToHtml(sentenceWithoutCodeBlocks);
+  const blanks = getBlanks(blanksNodes);
+
+  if (!sentence) throw Error('sentence is missing from fill in the blank');
+  if (!blanks) throw Error('blanks are missing from fill in the blank');
+  if (sentence.match(/BLANK/g).length !== blanks.length)
+    throw Error(
+      `Number of underscores in sentence doesn't match the number of blanks`
+    );
+
+  return { sentence, blanks };
+}
+
+/**
+ * Handle Chinese fill-in-the-blank challenges with hanzi/pinyin support
+ *
+ * In Chinese challenges, the sentence may contain patterns like `BLANK 好 (BLANK hǎo)`.
+ * We only count BLANKs in the hanzi portion for validation,
+ * as the BLANK in pinyin serves as a token, allowing us to omit the pinyin for the corresponding blank.
+ * Each blank answer may contain both hanzi and pinyin information.
+ */
+function getChineseFillInTheBlank(
+  sentenceNodes,
+  sentenceWithoutCodeBlocks,
+  blanksNodes,
+  { inputType }
+) {
+  const hanziSentenceForCounting = extractHanziForCounting(sentenceNodes);
+
+  const sentence = mdastToHtml(sentenceWithoutCodeBlocks, { lang: 'zh-CN' });
+
+  // Parse answers from --blanks-- section
+  // Each answer corresponds to one hanzi BLANK and may include both hanzi and pinyin
+  // e.g., answer: { type: 'hanzi-pinyin', value: { hanzi: '你好', pinyin: 'nǐ hǎo' } }
+  const blanks = getBlanks(blanksNodes, 'zh-CN');
 
   if (!sentence) throw Error('sentence is missing from fill in the blank');
   if (!blanks) throw Error('blanks are missing from fill in the blank');
 
-  // Count BLANKs - for Chinese, this only counts hanzi BLANKs
-  const blankCount = (sentenceForCounting.match(/BLANK/g) || []).length;
+  const hanziBlankCount = (hanziSentenceForCounting.match(/BLANK/g) || [])
+    .length;
 
-  if (blankCount !== blanks.length) {
+  // Validate that number of answers matches number of hanzi BLANKs
+  if (hanziBlankCount !== blanks.length) {
     throw Error(
       `Number of underscores in sentence doesn't match the number of blanks.`
     );
   }
 
-  const result = { sentence, blanks };
-  if (inputType) {
-    result.inputType = inputType;
+  // For 'pinyin-to-hanzi' inputType, all answers must be of type 'hanzi-pinyin'.
+  // This validation ensures compatibility with the UI's pinyin input feature,
+  // where users type pinyin and the system automatically converts it to hanzi
+  // if it matches the expected pinyin from the answer.
+  if (inputType === 'pinyin-to-hanzi') {
+    const allAnswersAreHanziPinyin = blanks.every(
+      blank => blank.answer.type === 'hanzi-pinyin'
+    );
+    if (!allAnswersAreHanziPinyin) {
+      throw Error(
+        `When inputType is 'pinyin-to-hanzi', all answers must be of type 'hanzi-pinyin'.`
+      );
+    }
   }
 
-  return result;
+  return { sentence, blanks };
 }
 
 /**
@@ -147,7 +188,7 @@ function getBlanks(blanksNodes, lang) {
     const feedback = find(blanksTree, { value: '--feedback--' });
 
     const answerText = blanksGroup[0].children[0].value;
-    const answer = parseAnswer(answerText, lang);
+    const answer = lang ? parseAnswer(answerText, lang) : answerText;
 
     if (feedback) {
       const feedbackNodes = getSection(blanksTree, '--feedback--');
@@ -163,13 +204,16 @@ function getBlanks(blanksNodes, lang) {
 }
 
 /**
- * Parse answer text with discriminated union format
- * @param {string} answerText - The answer text
- * @param {string} lang - The language code
- * @returns {object} Answer object with type and value: { type: 'text' | 'hanzi-pinyin', value: string | { hanzi, pinyin } }
+ * Parses the answer text into a structured format based on the language.
+ * For non-Chinese languages, returns a simple text answer.
+ * For Chinese (zh-CN), attempts to parse hanzi and pinyin from the format "hanzi (pinyin)".
+ * @param {string} answerText - The raw answer text to parse.
+ * @param {string} lang - The language code (e.g., 'zh-CN').
+ * @returns {object} A discriminated union object:
+ *   - For 'text' type: { type: 'text', value: string }
+ *   - For 'hanzi-pinyin' type: { type: 'hanzi-pinyin', value: { hanzi: string, pinyin: string } }
  */
 function parseAnswer(answerText, lang) {
-  // For non-Chinese challenges, return as text type
   if (lang !== 'zh-CN') {
     return {
       type: 'text',
@@ -179,7 +223,6 @@ function parseAnswer(answerText, lang) {
 
   const parsed = parseChinesePattern(answerText);
 
-  // If it matches hanzi (pinyin) pattern, return as hanzi-pinyin type
   if (parsed) {
     return {
       type: 'hanzi-pinyin',
@@ -190,7 +233,6 @@ function parseAnswer(answerText, lang) {
     };
   }
 
-  // Otherwise (hanzi only or pinyin only), return as text type
   return {
     type: 'text',
     value: answerText

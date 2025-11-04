@@ -148,8 +148,7 @@ const ShowFillInTheBlank = ({
         return normalizedUserAnswer === textValue.toLowerCase();
       }
 
-      // Handle hanzi-pinyin type answers (Chinese with both hanzi and pinyin)
-      // TODO: Implement hanzi-pinyin comparison logic
+      // TODO: Implement hanzi-pinyin validation logic
       // https://github.com/freeCodeCamp/language-curricula/issues/18
       return false;
     });
@@ -314,9 +313,7 @@ export const query = graphql`
             answer
             feedback
           }
-          inputType
         }
-        lang
         transcript
         scene {
           setup {

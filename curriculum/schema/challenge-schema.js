@@ -242,8 +242,7 @@ const schema = Joi.object().keys({
           feedback: Joi.string().allow(null)
         })
       )
-      .required(),
-    inputType: Joi.string().optional()
+      .required()
   }),
   forumTopicId: Joi.number(),
   id: Joi.objectId().required(),
