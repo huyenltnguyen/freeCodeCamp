@@ -67,15 +67,21 @@ describe('fill-in-the-blanks plugin', () => {
     expect(Array.isArray(testObject.blanks)).toBe(true);
     expect(testObject.blanks.length).toBe(3);
     expect(testObject.blanks[0]).toHaveProperty('answer');
-    expect(typeof testObject.blanks[0].answer).toBe('string');
+    expect(testObject.blanks[0].answer).toEqual({ type: 'text', value: 'are' });
     expect(testObject.blanks[0]).toHaveProperty('feedback');
     expect(typeof testObject.blanks[0].feedback).toBe('string');
     expect(testObject.blanks[1]).toHaveProperty('answer');
-    expect(typeof testObject.blanks[1].answer).toBe('string');
+    expect(testObject.blanks[1].answer).toEqual({
+      type: 'text',
+      value: 'right'
+    });
     expect(testObject.blanks[1]).toHaveProperty('feedback');
     expect(typeof testObject.blanks[1].feedback).toBe('string');
     expect(testObject.blanks[2]).toHaveProperty('answer');
-    expect(typeof testObject.blanks[2].answer).toBe('string');
+    expect(testObject.blanks[2].answer).toEqual({
+      type: 'text',
+      value: 'Nice'
+    });
     expect(testObject.blanks[2]).toHaveProperty('feedback');
     expect(testObject.blanks[2].feedback).toBeNull();
   });
@@ -85,7 +91,7 @@ describe('fill-in-the-blanks plugin', () => {
     const testObject = file.data.fillInTheBlank;
 
     expect(testObject.blanks[0]).toStrictEqual({
-      answer: 'are',
+      answer: { type: 'text', value: 'are' },
       feedback:
         '<p>The verb <code>to be</code> is an irregular verb. ' +
         'When conjugated with the pronoun <code>you</code>, <code>be</code> ' +
@@ -93,12 +99,12 @@ describe('fill-in-the-blanks plugin', () => {
     });
 
     expect(testObject.blanks[1]).toStrictEqual({
-      answer: 'right',
+      answer: { type: 'text', value: 'right' },
       feedback: '<p>Feedback 2</p>'
     });
 
     expect(testObject.blanks[2]).toStrictEqual({
-      answer: 'Nice',
+      answer: { type: 'text', value: 'Nice' },
       feedback: null
     });
   });
@@ -174,7 +180,7 @@ Example of good formatting:
     const testObject = file.data.fillInTheBlank;
 
     expect(testObject.blanks[0]).toStrictEqual({
-      answer: 'are',
+      answer: { type: 'text', value: 'are' },
       feedback:
         '<p>The verb <code>to be</code> is an irregular verb. When conjugated with the pronoun <code>you</code>, <code>be</code> becomes <code>are</code>. For example: <code>You are an English learner.</code></p>'
     });

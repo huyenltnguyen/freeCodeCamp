@@ -27,11 +27,11 @@ function parseChinesePattern(text) {
 function chineseInlineCodeHandler(state, node) {
   // Handle Chinese fill-in-the-blank
   if (node.value.includes('BLANK')) {
-    const rubySegments = chineseTextToRubySegments(node.value);
+    const html = chineseFillInTheBlankToHtml(node.value);
 
     return {
       type: 'raw',
-      value: rubySegments
+      value: html
     };
   }
 
@@ -87,14 +87,22 @@ function chineseInlineCodeHandler(state, node) {
  * @param {string} text - Text in format: hanzi (pinyin) with BLANKs
  * @returns {string} HTML with ruby elements separated by BLANK tokens
  */
-function chineseTextToRubySegments(text) {
-  const parsed = parseChinesePattern(text);
+function chineseFillInTheBlankToHtml(text) {
+  const hanziPinyin = parseChinesePattern(text);
 
-  if (!parsed) {
+  // If text doesn't match hanzi (pinyin) pattern, return as-is.
+  // This handles cases like plain text with BLANK: "你BLANK" or "nǐ BLANK".
+  if (!hanziPinyin) {
     return text;
   }
 
-  const { hanzi, pinyin } = parsed;
+  const { hanzi, pinyin } = hanziPinyin;
+
+  if (!hanzi.includes('BLANK')) {
+    throw new Error(
+      'No BLANK found in hanzi portion of fill-in-the-blank text'
+    );
+  }
 
   const hanziParts = hanzi.split('BLANK');
   const pinyinParts = pinyin.split('BLANK');
@@ -134,6 +142,6 @@ const createMdastToHtml = lang =>
 
 module.exports = {
   parseChinesePattern,
-  chineseTextToRubySegments,
+  chineseFillInTheBlankToHtml,
   createMdastToHtml
 };

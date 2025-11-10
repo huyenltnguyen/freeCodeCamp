@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   createMdastToHtml,
   parseChinesePattern,
-  chineseTextToRubySegments
+  chineseFillInTheBlankToHtml
 } from './i18n-stringify';
 
 describe('parseChinesePattern', () => {
@@ -132,44 +132,56 @@ describe('createMdastToHtml', () => {
   });
 });
 
-describe('chineseTextToRubySegments', () => {
-  it('should convert hanzi and pinyin to ruby HTML', () => {
-    const result = chineseTextToRubySegments('你好 (nǐ hǎo)');
-    expect(result).toBe('<ruby>你好<rp>(</rp><rt>nǐ hǎo</rt><rp>)</rp></ruby>');
+describe('chineseFillInTheBlankToRubyHtml', () => {
+  it('should throw if no BLANK is found in hanzi', () => {
+    expect(() => chineseFillInTheBlankToHtml('你好 (nǐ hǎo)')).toThrow(
+      'No BLANK found in hanzi portion of fill-in-the-blank text'
+    );
   });
 
-  it('should handle BLANK in hanzi and pinyin', () => {
-    const result = chineseTextToRubySegments('你BLANK (nǐ BLANK)');
+  it('should return text as-is if pattern does not match', () => {
+    expect(chineseFillInTheBlankToHtml('你BLANK')).toBe('你BLANK');
+    expect(chineseFillInTheBlankToHtml('nǐ BLANK')).toBe('nǐ BLANK');
+  });
+
+  it('should return as ruby if the text has hanzi (pinyin) pattern', () => {
+    const result = chineseFillInTheBlankToHtml(
+      'BLANK是王华 (BLANK shì Wang Hua)'
+    );
     expect(result).toBe(
-      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>'
+      'BLANK<ruby>是王华<rp>(</rp><rt>shì Wang Hua</rt><rp>)</rp></ruby>'
     );
   });
 
   it('should handle multiple BLANKs', () => {
-    const result = chineseTextToRubySegments(
-      '你BLANK我BLANK (nǐ BLANK wǒ BLANK)'
+    const result = chineseFillInTheBlankToHtml(
+      'BLANK BLANK王华 (BLANK BLANK Wang Hua)'
     );
     expect(result).toBe(
-      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby>我<rp>(</rp><rt>wǒ</rt><rp>)</rp></ruby>BLANK<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>'
+      'BLANKBLANK<ruby>王华<rp>(</rp><rt>Wang Hua</rt><rp>)</rp></ruby>'
     );
   });
 
   it('should handle spaces around BLANK tokens', () => {
-    const result = chineseTextToRubySegments(
+    const result = chineseFillInTheBlankToHtml(
       '你 BLANK 我 BLANK (nǐ BLANK wǒ BLANK)'
     );
     expect(result).toBe(
-      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby>我<rp>(</rp><rt>wǒ</rt><rp>)</rp></ruby>BLANK<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>'
+      '<ruby>你<rp>(</rp><rt>nǐ</rt><rp>)</rp></ruby>BLANK<ruby>我<rp>(</rp><rt>wǒ</rt><rp>)</rp></ruby>BLANK'
     );
   });
 
-  it('should return input as-is for non-matching text', () => {
-    const result = chineseTextToRubySegments('你好');
-    expect(result).toBe('你好');
+  it('should not wrap BLANK tokens in ruby', () => {
+    const result = chineseFillInTheBlankToHtml(
+      'BLANK是王华 (BLANK shì Wang Hua)'
+    );
+    expect(result).not.toContain('<ruby>BLANK');
   });
 
-  it('should return input as-is for empty string', () => {
-    const result = chineseTextToRubySegments('');
-    expect(result).toBe('');
+  it('should not create empty ruby elements', () => {
+    const result = chineseFillInTheBlankToHtml(
+      'BLANK是王华 (BLANK shì Wang Hua)'
+    );
+    expect(result).not.toContain('<ruby><rp>(</rp><rt></rt><rp>)</rp></ruby>');
   });
 });
