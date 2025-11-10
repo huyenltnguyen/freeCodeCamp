@@ -40,25 +40,8 @@ type MultipleChoiceAnswer = {
   audioId: string | null;
 };
 
-type FillInTheBlankAnswerText = {
-  type: 'text';
-  value: string;
-};
-
-type FillInTheBlankAnswerHanziPinyin = {
-  type: 'hanzi-pinyin';
-  value: {
-    hanzi: string;
-    pinyin: string;
-  };
-};
-
-export type FillInTheBlankAnswerData =
-  | FillInTheBlankAnswerText
-  | FillInTheBlankAnswerHanziPinyin;
-
 type FillInTheBlankAnswer = {
-  answer: FillInTheBlankAnswerData;
+  answer: string;
   feedback: string | null;
 };
 

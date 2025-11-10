@@ -67,21 +67,15 @@ describe('fill-in-the-blanks plugin', () => {
     expect(Array.isArray(testObject.blanks)).toBe(true);
     expect(testObject.blanks.length).toBe(3);
     expect(testObject.blanks[0]).toHaveProperty('answer');
-    expect(testObject.blanks[0].answer).toEqual({ type: 'text', value: 'are' });
+    expect(testObject.blanks[0].answer).toEqual('are');
     expect(testObject.blanks[0]).toHaveProperty('feedback');
     expect(typeof testObject.blanks[0].feedback).toBe('string');
     expect(testObject.blanks[1]).toHaveProperty('answer');
-    expect(testObject.blanks[1].answer).toEqual({
-      type: 'text',
-      value: 'right'
-    });
+    expect(testObject.blanks[1].answer).toEqual('right');
     expect(testObject.blanks[1]).toHaveProperty('feedback');
     expect(typeof testObject.blanks[1].feedback).toBe('string');
     expect(testObject.blanks[2]).toHaveProperty('answer');
-    expect(testObject.blanks[2].answer).toEqual({
-      type: 'text',
-      value: 'Nice'
-    });
+    expect(testObject.blanks[2].answer).toEqual('Nice');
     expect(testObject.blanks[2]).toHaveProperty('feedback');
     expect(testObject.blanks[2].feedback).toBeNull();
   });
@@ -91,7 +85,7 @@ describe('fill-in-the-blanks plugin', () => {
     const testObject = file.data.fillInTheBlank;
 
     expect(testObject.blanks[0]).toStrictEqual({
-      answer: { type: 'text', value: 'are' },
+      answer: 'are',
       feedback:
         '<p>The verb <code>to be</code> is an irregular verb. ' +
         'When conjugated with the pronoun <code>you</code>, <code>be</code> ' +
@@ -99,12 +93,12 @@ describe('fill-in-the-blanks plugin', () => {
     });
 
     expect(testObject.blanks[1]).toStrictEqual({
-      answer: { type: 'text', value: 'right' },
+      answer: 'right',
       feedback: '<p>Feedback 2</p>'
     });
 
     expect(testObject.blanks[2]).toStrictEqual({
-      answer: { type: 'text', value: 'Nice' },
+      answer: 'Nice',
       feedback: null
     });
   });
@@ -180,13 +174,13 @@ Example of good formatting:
     const testObject = file.data.fillInTheBlank;
 
     expect(testObject.blanks[0]).toStrictEqual({
-      answer: { type: 'text', value: 'are' },
+      answer: 'are',
       feedback:
         '<p>The verb <code>to be</code> is an irregular verb. When conjugated with the pronoun <code>you</code>, <code>be</code> becomes <code>are</code>. For example: <code>You are an English learner.</code></p>'
     });
   });
 
-  it('should parse Chinese fill-in-the-blank answers in "hanzi (pinyin)" format as hanzi-pinyin type', () => {
+  it('should parse Chinese fill-in-the-blank answers in "hanzi (pinyin)" format as plain strings', () => {
     file.data.lang = 'zh-CN';
     plugin(mockChineseFillInTheBlankAST, file);
     const testObject = file.data.fillInTheBlank;
@@ -195,44 +189,32 @@ Example of good formatting:
       '<p>BLANK好，BLANK是王华，请问你BLANK什么名字？ (BLANK hǎo BLANK shì Wang Hua qǐng wèn nǐ BLANK shén me míng zi)</p>'
     );
     expect(testObject.blanks.length).toBe(3);
-    expect(testObject.blanks[0].answer).toEqual({
-      type: 'hanzi-pinyin',
-      value: { hanzi: '你', pinyin: 'nǐ' }
-    });
+    expect(testObject.blanks[0].answer).toEqual('你 (nǐ)');
     expect(testObject.blanks[0].feedback).toBe('<p>This is "you".</p>');
-    expect(testObject.blanks[1].answer).toEqual({
-      type: 'hanzi-pinyin',
-      value: { hanzi: '我', pinyin: 'wǒ' }
-    });
+    expect(testObject.blanks[1].answer).toEqual('我 (wǒ)');
     expect(testObject.blanks[1].feedback).toBe('<p>This is "I".</p>');
-    expect(testObject.blanks[2].answer).toEqual({
-      type: 'hanzi-pinyin',
-      value: { hanzi: '叫', pinyin: 'jiào' }
-    });
+    expect(testObject.blanks[2].answer).toEqual('叫 (jiào)');
     expect(testObject.blanks[2].feedback).toBe(
       '<p>This means "to be called".</p>'
     );
   });
 
-  it('should throw error when inputType is pinyin-to-hanzi but answer is text type', () => {
+  it('should throw error when inputType is pinyin-to-hanzi but answer is not in hanzi-pinyin format', () => {
     file.data.lang = 'zh-CN';
     file.data.inputType = 'pinyin-to-hanzi';
     expect(() => {
       plugin(mockChineseFillInTheBlankTextAnswersAST, file);
     }).toThrow(
-      "When inputType is 'pinyin-to-hanzi', all answers must be of type 'hanzi-pinyin'."
+      "When inputType is 'pinyin-to-hanzi', all answers must be in 'hanzi (pinyin)' format."
     );
   });
 
-  it('should parse Chinese answers that do not match hanzi-pinyin pattern as text type', () => {
+  it('should parse Chinese answers that do not match hanzi-pinyin pattern as plain text', () => {
     file.data.lang = 'zh-CN';
     plugin(mockChineseFillInTheBlankTextAnswersAST, file);
     const testObject = file.data.fillInTheBlank;
 
-    expect(testObject.blanks[0].answer).toEqual({
-      type: 'text',
-      value: '你好'
-    });
+    expect(testObject.blanks[0].answer).toEqual('你好');
   });
 
   it('should return sentence as plain text without ruby markup when sentence does not contain pinyin', () => {
@@ -241,9 +223,6 @@ Example of good formatting:
     const testObject = file.data.fillInTheBlank;
 
     expect(testObject.sentence).toBe('<p>BLANK好</p>');
-    expect(testObject.blanks[0].answer).toEqual({
-      type: 'hanzi-pinyin',
-      value: { hanzi: '你', pinyin: 'nǐ' }
-    });
+    expect(testObject.blanks[0].answer).toEqual('你 (nǐ)');
   });
 });

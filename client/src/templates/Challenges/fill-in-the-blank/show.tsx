@@ -143,14 +143,24 @@ const ShowFillInTheBlank = ({
         userAnswer.trim()
       ).toLowerCase();
 
-      if (answer.type === 'text') {
-        const textValue = answer.value;
-        return normalizedUserAnswer === textValue.toLowerCase();
+      // Check if answer is in Chinese format: "hanzi (pinyin)"
+      const chineseMatch = answer.match(/^(.+?)\s*\((.+?)\)$/);
+
+      if (chineseMatch) {
+        const hanzi = chineseMatch[1].trim();
+        const pinyin = chineseMatch[2].trim();
+
+        // TODO: Implement full hanzi-pinyin validation logic
+        // For now, accept either hanzi or pinyin (case-insensitive)
+        // https://github.com/freeCodeCamp/language-curricula/issues/18
+        return (
+          normalizedUserAnswer === hanzi.toLowerCase() ||
+          normalizedUserAnswer === pinyin.toLowerCase()
+        );
       }
 
-      // TODO: Implement hanzi-pinyin validation logic
-      // https://github.com/freeCodeCamp/language-curricula/issues/18
-      return false;
+      // Plain text answer
+      return normalizedUserAnswer === answer.toLowerCase();
     });
 
     setAnswersCorrect(newAnswersCorrect);

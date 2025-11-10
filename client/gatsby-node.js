@@ -411,7 +411,7 @@ exports.createSchemaCustomization = ({ actions }) => {
       blanks: [Blank]
     }
     type Blank {
-      answer: JSON
+      answer: String
       feedback: String
     }
     type Scene {

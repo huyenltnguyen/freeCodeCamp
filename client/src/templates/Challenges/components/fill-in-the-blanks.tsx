@@ -4,10 +4,7 @@ import { Spacer } from '@freecodecamp/ui';
 
 import { parseBlanks } from '../fill-in-the-blank/parse-blanks';
 import PrismFormatted from '../components/prism-formatted';
-import {
-  FillInTheBlank,
-  FillInTheBlankAnswerData
-} from '../../../redux/prop-types';
+import { FillInTheBlank } from '../../../redux/prop-types';
 import ChallengeHeading from './challenge-heading';
 
 type FillInTheBlankProps = {
@@ -18,6 +15,24 @@ type FillInTheBlankProps = {
   showWrong: boolean;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
+
+/**
+ * Parses an answer string to check if it matches Chinese hanzi (pinyin) pattern
+ * @param answer - The answer string
+ * @returns Parsed hanzi and pinyin, or null if not matching
+ */
+function parseAnswer(answer: string): { hanzi: string; pinyin: string } | null {
+  const match = answer.match(/^(.+?)\s*\((.+?)\)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    hanzi: match[1].trim(),
+    pinyin: match[2].trim()
+  };
+}
 
 function FillInTheBlanks({
   fillInTheBlank: { sentence, blanks },
@@ -39,30 +54,35 @@ function FillInTheBlanks({
     return cls;
   };
 
-  const renderAnswer = (answer: FillInTheBlankAnswerData): React.ReactNode => {
-    if (answer.type === 'text') {
-      return answer.value;
+  const renderAnswer = (answer: string): React.ReactNode => {
+    const parsed = parseAnswer(answer);
+
+    if (parsed) {
+      // Render Chinese with both hanzi and pinyin as ruby
+      return (
+        <ruby>
+          {parsed.hanzi}
+          <rp>(</rp>
+          <rt>{parsed.pinyin}</rt>
+          <rp>)</rp>
+        </ruby>
+      );
     }
 
-    // Render Chinese with both hanzi and pinyin as ruby
-    return (
-      <ruby>
-        {answer.value.hanzi}
-        <rp>(</rp>
-        <rt>{answer.value.pinyin}</rt>
-        <rp>)</rp>
-      </ruby>
-    );
+    // Plain text answer
+    return answer;
   };
 
-  const getAnswerLength = (answer: FillInTheBlankAnswerData): number => {
-    if (answer.type === 'text') {
-      return answer.value.length;
+  const getAnswerLength = (answer: string): number => {
+    const parsed = parseAnswer(answer);
+
+    if (parsed) {
+      // TODO: Calculate the answer length with pinyin + tone
+      // https://github.com/freeCodeCamp/language-curricula/issues/18
+      return parsed.hanzi.length;
     }
 
-    // TODO: Calculate the answer length with pinyin + tone
-    // https://github.com/freeCodeCamp/language-curricula/issues/18
-    return answer.value.hanzi.length;
+    return answer.length;
   };
 
   const paragraphs = parseBlanks(sentence);
@@ -79,34 +99,46 @@ function FillInTheBlanks({
             // the paragraphs are static.
             <p key={i}>
               {p.map((node, j) => {
-                const { type, value } = node;
-                if (type === 'text') {
-                  return value;
+                if (node.type === 'text') {
+                  return <span key={j}>{node.value}</span>;
                 }
 
+                if (node.type === 'hanzi-pinyin') {
+                  return (
+                    <ruby key={j}>
+                      {node.value.hanzi}
+                      <rp>(</rp>
+                      <rt>{node.value.pinyin}</rt>
+                      <rp>)</rp>
+                    </ruby>
+                  );
+                }
+
+                const blankIndex = node.value;
+
                 // If a blank is answered correctly, render the answer as part of the sentence.
-                if (type === 'blank' && answersCorrect[value] === true) {
+                if (answersCorrect[blankIndex] === true) {
                   return (
                     <span key={j} className='correct-blank-answer'>
-                      {renderAnswer(blankAnswers[value])}
+                      {renderAnswer(blankAnswers[blankIndex])}
                     </span>
                   );
                 }
 
-                const answerLength = getAnswerLength(blankAnswers[value]);
+                const answerLength = getAnswerLength(blankAnswers[blankIndex]);
 
                 return (
                   <input
                     key={j}
                     type='text'
                     maxLength={answerLength + 3}
-                    className={getInputClass(value)}
+                    className={getInputClass(blankIndex)}
                     onChange={handleInputChange}
-                    data-index={node.value}
+                    data-index={blankIndex}
                     size={answerLength}
                     autoComplete='off'
                     aria-label={t('learn.fill-in-the-blank.blank')}
-                    {...(answersCorrect[value] === false
+                    {...(answersCorrect[blankIndex] === false
                       ? { 'aria-invalid': 'true' }
                       : {})}
                   />

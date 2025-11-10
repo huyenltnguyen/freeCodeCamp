@@ -3,10 +3,7 @@ const find = require('unist-util-find');
 const visit = require('unist-util-visit');
 const { getSection } = require('./utils/get-section');
 const getAllBefore = require('./utils/before-heading');
-const {
-  createMdastToHtml,
-  parseChinesePattern
-} = require('./utils/i18n-stringify');
+const { parseChinesePattern } = require('./utils/i18n-stringify');
 const { splitOnThematicBreak } = require('./utils/split-on-thematic-break');
 
 const NOT_IN_PARAGRAPHS = `Each inline code block in the fillInTheBlank sentence section must in its own paragraph
@@ -61,7 +58,11 @@ function extractHanziForCounting(sentenceNodes) {
 function plugin() {
   return transformer;
   function transformer(tree, file) {
-    const toHtml = createMdastToHtml(file.data.lang);
+    // For fill-in-the-blank, we always use plain HTML conversion
+    // regardless of language. The client will handle any special rendering.
+    const mdastToHTML = require('./utils/mdast-to-html');
+    const toHtml = mdastToHTML;
+
     const fillInTheBlankNodes = getSection(tree, '--fillInTheBlank--');
 
     if (fillInTheBlankNodes.length === 0) return;
@@ -163,12 +164,13 @@ function plugin() {
       // where users type pinyin and the system automatically converts it to hanzi
       // if the input matches the expected pinyin from the answer.
       if (inputType === 'pinyin-to-hanzi') {
-        const allAnswersAreHanziPinyin = blanks.every(
-          blank => blank.answer.type === 'hanzi-pinyin'
+        const allAnswersAreHanziPinyin = blanks.every(blank =>
+          parseChinesePattern(blank.answer)
         );
+
         if (!allAnswersAreHanziPinyin) {
           throw Error(
-            `When inputType is 'pinyin-to-hanzi', all answers must be of type 'hanzi-pinyin'.`
+            `When inputType is 'pinyin-to-hanzi', all answers must be in 'hanzi (pinyin)' format.`
           );
         }
       }
@@ -215,32 +217,13 @@ function validateBlanksCount(fillInTheBlankTree) {
 }
 
 /**
- * Parses the answer text into a structured format based on the language.
- * For non-Chinese languages, returns a simple text answer.
- * For Chinese (zh-CN), attempts to parse hanzi and pinyin from the format "hanzi (pinyin)".
- * @param {string} answerText - The raw answer text to parse.
- * @param {string} lang - The language code (e.g., 'zh-CN').
- * @returns {object} A discriminated union object:
- *   - For 'text' type: { type: 'text', value: string }
- *   - For 'hanzi-pinyin' type: { type: 'hanzi-pinyin', value: { hanzi: string, pinyin: string } }
+ * Returns the answer text as-is.
+ * The client will handle parsing and rendering.
+ * @param {string} answerText - The raw answer text.
+ * @returns {string} The answer text.
  */
 function parseAnswer(answerText) {
-  const parsed = parseChinesePattern(answerText);
-
-  if (parsed) {
-    return {
-      type: 'hanzi-pinyin',
-      value: {
-        hanzi: parsed.hanzi,
-        pinyin: parsed.pinyin
-      }
-    };
-  }
-
-  return {
-    type: 'text',
-    value: answerText
-  };
+  return answerText;
 }
 
 module.exports = plugin;

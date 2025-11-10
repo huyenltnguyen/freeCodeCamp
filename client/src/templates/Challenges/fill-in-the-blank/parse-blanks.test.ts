@@ -129,4 +129,148 @@ describe('parseBlanks', () => {
     expect(() => parseBlanks('<p>hello BLANK!</p>hello BLANK!')).toThrow();
     expect(() => parseBlanks('hello BLANK!<p>hello</p>')).toThrow();
   });
+
+  describe('Chinese patterns', () => {
+    it('handles Chinese text with hanzi (pinyin) format', () => {
+      expect(parseBlanks('<p>你好 (nǐ hǎo)</p>')).toEqual([
+        [
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '你好',
+              pinyin: 'nǐ hǎo'
+            }
+          }
+        ]
+      ]);
+    });
+
+    it('handles Chinese with single BLANK', () => {
+      expect(parseBlanks('<p>BLANK好 (BLANK hǎo)</p>')).toEqual([
+        [
+          { type: 'blank', value: 0 },
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '好',
+              pinyin: 'hǎo'
+            }
+          }
+        ]
+      ]);
+    });
+
+    it('handles Chinese with multiple BLANKs', () => {
+      expect(
+        parseBlanks(
+          '<p>BLANK好，BLANK是王华 (BLANK hǎo BLANK shì Wang Hua)</p>'
+        )
+      ).toEqual([
+        [
+          { type: 'blank', value: 0 },
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '好，',
+              pinyin: 'hǎo'
+            }
+          },
+          { type: 'blank', value: 1 },
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '是王华',
+              pinyin: 'shì Wang Hua'
+            }
+          }
+        ]
+      ]);
+    });
+
+    it('handles Chinese with BLANK at the end', () => {
+      expect(parseBlanks('<p>你好BLANK (nǐ hǎo BLANK)</p>')).toEqual([
+        [
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '你好',
+              pinyin: 'nǐ hǎo'
+            }
+          },
+          { type: 'blank', value: 0 }
+        ]
+      ]);
+    });
+
+    it('handles Chinese with spaces around BLANK', () => {
+      expect(parseBlanks('<p>你 BLANK 我 (nǐ BLANK wǒ)</p>')).toEqual([
+        [
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '你',
+              pinyin: 'nǐ'
+            }
+          },
+          { type: 'blank', value: 0 },
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '我',
+              pinyin: 'wǒ'
+            }
+          }
+        ]
+      ]);
+    });
+
+    it('counts blanks based on hanzi portion only', () => {
+      expect(
+        parseBlanks(
+          '<p>BLANK好，BLANK是 (BLANK hǎo BLANK shì)</p><p>BLANK (BLANK)</p>'
+        )
+      ).toEqual([
+        [
+          { type: 'blank', value: 0 },
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '好，',
+              pinyin: 'hǎo'
+            }
+          },
+          { type: 'blank', value: 1 },
+          {
+            type: 'hanzi-pinyin',
+            value: {
+              hanzi: '是',
+              pinyin: 'shì'
+            }
+          }
+        ],
+        [{ type: 'blank', value: 2 }]
+      ]);
+    });
+
+    it('handles plain text without pinyin (no parentheses)', () => {
+      expect(parseBlanks('<p>你BLANK好</p>')).toEqual([
+        [
+          { type: 'text', value: '你' },
+          { type: 'blank', value: 0 },
+          { type: 'text', value: '好' }
+        ]
+      ]);
+    });
+
+    it('handles Chinese without BLANK in hanzi', () => {
+      expect(parseBlanks('<p>你好 (nǐ BLANK hǎo)</p>')).toEqual([
+        [
+          {
+            type: 'text',
+            value: '你好 (nǐ BLANK hǎo)'
+          }
+        ]
+      ]);
+    });
+  });
 });
