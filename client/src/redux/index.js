@@ -24,6 +24,7 @@ import { createMsUsernameSaga } from './ms-username-saga';
 import { createSurveySaga } from './survey-saga';
 import { createSessionCompletedChallengesSaga } from './session-completed-challenges';
 import { createThemeSaga } from './theme-saga';
+import { getInitialTheme } from '../utils/theme';
 
 const defaultFetchState = {
   pending: true,
@@ -55,7 +56,7 @@ const initialState = {
   currentChallengeId: store.get(CURRENT_CHALLENGE_KEY),
   examInProgress: false,
   isProcessing: false,
-  theme: 'light',
+  theme: getInitialTheme(),
   showCert: {},
   showCertFetchState: {
     ...defaultFetchState

@@ -16,19 +16,14 @@ describe('initializeThemeSaga', () => {
       getItem: vi.fn(),
       setItem: vi.fn()
     };
-    Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-      writable: true
-    });
+    vi.stubGlobal('localStorage', localStorageMock);
 
     matchMediaMock = vi.fn();
-    Object.defineProperty(window, 'matchMedia', {
-      value: matchMediaMock,
-      writable: true
-    });
+    vi.stubGlobal('matchMedia', matchMediaMock);
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
 
