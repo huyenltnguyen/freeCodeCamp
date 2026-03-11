@@ -148,6 +148,7 @@ jobs:
             }
 
   # Checks that the PR description still contains the required template.
+  # The first 3 checkboxes must be ticked ([x] or [X]).
   # The last checkbox (tested locally) is acceptable to leave unticked
   # but removing the entire template is not.
   check-pr-template:
@@ -179,17 +180,20 @@ jobs:
 
             const body = context.payload.pull_request.body || '';
 
-            // Check that the key template sections are still present.
-            // We do not require the last checkbox to be ticked, but the
-            // template text itself must exist.
-            const requiredPhrases = [
-              'Checklist:',
+            // The template must be present and the first 3 checkboxes must be
+            // ticked ([x] or [X]). The last checkbox (tested locally) is
+            // acceptable to leave unticked.
+            const templatePresent = body.includes('Checklist:');
+            const requiredTicked = [
               'I have read and followed the [contribution guidelines]',
+              'I have read and followed the [how to open a pull request guide]',
               'My pull request targets the'
             ];
+            const allRequiredTicked = requiredTicked.every(
+              item => body.includes(`[x] ${item}`) || body.includes(`[X] ${item}`)
+            );
 
-            const templateMissing = requiredPhrases.some(phrase => !body.includes(phrase));
-            if (!templateMissing) return;
+            if (templatePresent && allRequiredTicked) return;
 
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
