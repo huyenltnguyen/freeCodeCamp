@@ -296,33 +296,17 @@ jobs:
           script: |
             const MARKER = '<!-- bot: linked-issue -->';
 
-            // Delete any previous bot comment for this check so it doesn't linger
-            // if the PR has been updated to address the concern.
+            // Reuse the allow-list result from the no-web-commits job.
+            if ('${{ needs.no-web-commits.outputs.is_allow_listed }}' === 'true') return;
+
             const { data: allComments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number
             });
-            for (const c of allComments) {
-              if (c.user.login === 'github-actions[bot]' && c.body.includes(MARKER)) {
-                await github.rest.issues.deleteComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: c.id
-                });
-              }
-            }
-
-            // Reuse the allow-list result from the no-web-commits job.
-            if ('${{ needs.no-web-commits.outputs.is_allow_listed }}' === 'true') return;
-
-            // Skip if already deprioritized
-            const { data: existingLabels } = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number
-            });
-            if (existingLabels.some(l => l.name === 'deprioritized')) return;
+            const existingComment = allComments.find(
+              c => c.user.login === 'github-actions[bot]' && c.body.includes(MARKER)
+            );
 
             const result = await github.graphql(
               `query($owner: String!, $repo: String!, $number: Int!) {
@@ -354,6 +338,7 @@ jobs:
                 issue_number: context.payload.pull_request.number,
                 labels: ['deprioritized']
               });
+              if (existingComment) return;
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -381,6 +366,7 @@ jobs:
                 issue_number: context.payload.pull_request.number,
                 labels: ['deprioritized']
               });
+              if (existingComment) return;
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -406,6 +392,7 @@ jobs:
                 issue_number: context.payload.pull_request.number,
                 labels: ['deprioritized']
               });
+              if (existingComment) return;
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
