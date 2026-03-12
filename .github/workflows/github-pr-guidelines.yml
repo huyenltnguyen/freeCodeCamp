@@ -22,9 +22,7 @@ jobs:
         id: pr_author
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
-          # GITHUB_TOKEN does not have the read:org permission needed for this call
-          # while CAMPERBOT_NO_TRANSLATE does, since it is a PAT for the camperbot account with read:org scope
-          github-token: ${{ secrets.CAMPERBOT_NO_TRANSLATE }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prAuthor = context.payload.pull_request.user.login;
 
@@ -35,8 +33,7 @@ jobs:
                 team_slug,
                 username: prAuthor
               }).then(({ data }) => data.state === 'active').catch(e => {
-                if (e.status === 404) return false;
-                throw e;
+                return false;
               })
             );
             const results = await Promise.all(membershipChecks);
