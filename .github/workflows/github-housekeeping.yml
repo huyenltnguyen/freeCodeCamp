@@ -1,0 +1,98 @@
+name: GitHub - Housekeeping
+
+env:
+  DEPRIORITIZED_CLOSE_HOURS: "168" # 7 days
+  STALE_DRAFT_DAYS: "60"
+  WAITING_UPDATE_REMINDER_DAYS: "7"
+  WAITING_UPDATE_CLOSE_DAYS: "14"
+  WAITING_REVIEW_WAIT_HOURS: "24"
+  DISCUSSING_CLOSE_DAYS: "60"
+
+on:
+  schedule:
+    - cron: "0 */6 * * 1-5" # every 6 hours on weekdays
+    - cron: "0 9 * * 1-5" # daily at 09:00 UTC on weekdays
+    - cron: "0 9 * * 1" # weekly on Mondays at 09:00 UTC
+
+jobs:
+  # Runs every 6 hours on weekdays.
+  frequent:
+    name: Frequent (Every 6 Hours, Weekdays)
+    runs-on: ubuntu-24.04
+    if: github.event.schedule == '0 */6 * * 1-5'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # Closes PRs labeled 'deprioritized' if the author has been inactive since
+      # the label was applied, giving contributors a grace period to respond.
+      - name: Auto-Close Inactive Deprioritized PRs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/pr-management/close-deprioritized-prs.js');
+            await script({ github, context });
+
+      # Scans all open PRs and applies the 'MERGE CONFLICT!' label to any that has
+      # merge conflicts, and removes it once the conflict is resolved.
+      - name: Label PRs with Merge Conflicts
+        uses: eps1lon/actions-label-merge-conflict@v3.0.3
+        with:
+          dirtyLabel: "MERGE CONFLICT!"
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # Runs daily at 09:00 UTC on weekdays.
+  daily:
+    name: Daily (09:00 UTC, Weekdays)
+    runs-on: ubuntu-24.04
+    if: github.event.schedule == '0 9 * * 1-5'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # Sends a reminder to the PR author when a 'status: waiting update' PR goes
+      # quiet, then closes it if there is still no response after the close deadline.
+      - name: Remind and Close PRs Waiting for Update
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/pr-management/remind-and-close-waiting-update-prs.js');
+            await script({ github, context });
+
+      # Applies 'status: waiting review' to PRs that pass CI and have no other
+      # status label, and transitions 'status: waiting update' PRs once the author
+      # pushes new commits and CI passes.
+      - name: Label PRs Waiting for Review
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/pr-management/label-waiting-review-prs.js');
+            await script({ github, context });
+
+  # Runs weekly on Mondays at 09:00 UTC.
+  weekly:
+    name: Weekly (Mondays, 09:00 UTC)
+    runs-on: ubuntu-24.04
+    if: github.event.schedule == '0 9 * * 1'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # Closes draft PRs that have had no activity from the author for an extended period.
+      - name: Close Stale Draft PRs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/pr-management/close-stale-draft-prs.js');
+            await script({ github, context });
+
+      # Closes issues labeled 'status: discussing' if there has been no comment
+      # activity since the label was applied.
+      - name: Close Stale Discussing Issues
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/issue-management/close-stale-discussing-issues.js');
+            await script({ github, context });
