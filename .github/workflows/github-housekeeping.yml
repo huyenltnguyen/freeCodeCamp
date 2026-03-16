@@ -23,16 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      # Closes PRs labeled 'deprioritized' if the author has been inactive since
-      # the label was applied, giving contributors a grace period to respond.
-      - name: Auto-Close Inactive Deprioritized PRs
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const script = require('./.github/scripts/pr-management/close-deprioritized-prs.js');
-            await script({ github, context });
-
       # Scans all open PRs and applies the 'MERGE CONFLICT!' label to any that has
       # merge conflicts, and removes it once the conflict is resolved.
       - name: Label PRs with Merge Conflicts
@@ -48,6 +38,16 @@ jobs:
     if: github.event.schedule == '0 9 * * 1-5'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # Closes PRs labeled 'deprioritized' if the author has been inactive since
+      # the label was applied, giving contributors a grace period to respond.
+      - name: Auto-Close Inactive Deprioritized PRs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/pr-management/close-deprioritized-prs.js');
+            await script({ github, context });
 
       # Sends a reminder to the PR author when a 'status: waiting update' PR goes
       # quiet, then closes it if there is still no response after the close deadline.
