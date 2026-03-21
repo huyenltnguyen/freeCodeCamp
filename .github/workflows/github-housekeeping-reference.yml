@@ -1,4 +1,7 @@
-name: GitHub - Housekeeping
+name: GitHub - Housekeeping (Reference - Disabled)
+
+# Disabled: kept for reference only. See github-housekeeping.yml for the active workflow.
+on: {}
 
 env:
   DEPRIORITIZED_CLOSE_HOURS: "168" # 7 days
