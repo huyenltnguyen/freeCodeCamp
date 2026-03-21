@@ -1,7 +1,6 @@
 'use strict';
 
-const FOOTER =
-  '\n\n---\nJoin us in our [chat room](https://discord.gg/PRyKn3Vbay) or our [forum](https://forum.freecodecamp.org/c/contributors/3) if you have any questions or need help with contributing.';
+const { FOOTER } = require('./constants.js');
 
 const TEMPLATE_BLOCK = [
   '```md',
@@ -22,25 +21,31 @@ const TEMPLATE_BLOCK = [
   '```'
 ].join('\n');
 
+// Returns true if the PR body passes the template check.
+function check(body) {
+  const lowerBody = (body || '').toLowerCase();
+  const templatePresent = lowerBody.includes('checklist:');
+  const requiredCheckboxes = [
+    'i have read and followed the contribution guidelines',
+    'i have read and followed the how to open a pull request guide',
+    'my pull request targets the'
+  ];
+  // Strip markdown links ([text](url) → text) before matching so contributors
+  // who omit the link syntax (e.g. type plain text) still pass the check.
+  const normalizedBody = lowerBody
+    .replace(/\[\s*x\s*\]/g, '[x]')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  const allRequiredChecked = requiredCheckboxes.every(checkbox =>
+    normalizedBody.includes(`[x] ${checkbox}`)
+  );
+  return templatePresent && allRequiredChecked;
+}
+
 module.exports = async ({ github, context, isAllowListed }) => {
   if (isAllowListed === 'true') return;
 
   const body = context.payload.pull_request.body || '';
-
-  // The template must be present and the first 3 checkboxes must be
-  // ticked ([x] or [X]). The last checkbox (tested locally) is
-  // acceptable to leave unticked.
-  const templatePresent = body.includes('Checklist:');
-  const requiredTicked = [
-    'I have read and followed the [contribution guidelines]',
-    'I have read and followed the [how to open a pull request guide]',
-    'My pull request targets the'
-  ];
-  const allRequiredTicked = requiredTicked.every(
-    item => body.includes(`[x] ${item}`) || body.includes(`[X] ${item}`)
-  );
-
-  if (templatePresent && allRequiredTicked) return;
+  if (check(body)) return;
 
   await github.rest.issues.addLabels({
     owner: context.repo.owner,
@@ -65,3 +70,5 @@ module.exports = async ({ github, context, isAllowListed }) => {
       ].join('\n') + FOOTER
   });
 };
+
+module.exports.check = check;

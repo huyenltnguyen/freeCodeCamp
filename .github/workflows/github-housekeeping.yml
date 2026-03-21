@@ -1,0 +1,27 @@
+name: GitHub - Housekeeping
+
+on:
+  schedule:
+    - cron: "0 9 * * 1-5" # daily at 09:00 UTC on weekdays
+
+jobs:
+  # Runs daily at 09:00 UTC on weekdays.
+  every-weekday:
+    name: Every Weekday (09:00 UTC)
+    runs-on: ubuntu-24.04
+    if: github.event.schedule == '0 9 * * 1-5'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          sparse-checkout: .github/scripts/pr-guidelines
+          sparse-checkout-cone-mode: false
+
+      # Removes the 'deprioritized' label from PRs whose authors have updated
+      # their submissions to follow the contribution guidelines.
+      - name: Remove Deprioritized Label from Updated PRs
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('./.github/scripts/pr-guidelines/review-deprioritized-prs.js');
+            await script({ github, context });
