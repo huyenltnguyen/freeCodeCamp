@@ -84,7 +84,13 @@ export function Scene({
         duration !== Infinity ? `#t=${audio.startTimestamp}` : '';
       current.volume = 1;
       current.addEventListener('canplaythrough', audioLoaded);
-      current.src = `${sounds}/${audio.filename}${audioTimestamp}`;
+      // Proof of concept: this recording is served from client/static as a
+      // constant bitrate MP3, which Firefox and Safari can seek in precisely.
+      const cbrFile = 'ES_A1_esteban_personal_records_dialogue_with_angela.mp3';
+      current.src =
+        audio.filename === cbrFile
+          ? `/sounds/${cbrFile}${audioTimestamp}`
+          : `${sounds}/${audio.filename}${audioTimestamp}`;
       current.preload = 'auto';
       current.load();
     }
