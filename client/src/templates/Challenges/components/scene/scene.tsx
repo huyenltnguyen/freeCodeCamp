@@ -18,7 +18,7 @@ import { getChallengeContentLangProps } from '../../../../utils/challenge-conten
 import { sounds, backgrounds, characterAssets } from './scene-assets';
 import Character from './character';
 import { SceneSubject } from './scene-subject';
-import { buildTranscript } from './scene-helpers';
+import { advanceSceneTime, buildTranscript } from './scene-helpers';
 
 import './scene.css';
 
@@ -40,11 +40,17 @@ export function Scene({
   superBlock?: string;
 }): JSX.Element {
   const { t } = useTranslation();
-  const canPauseRef = useRef(false);
   const { setup, commands } = scene;
   const { audio, alwaysShowDialogue } = setup;
 
   const audioRef = useRef<HTMLAudioElement>(new Audio());
+  // true from the moment play() is requested until the audio is paused
+  const audioIsActiveRef = useRef(false);
+  // true once the segment has played to its end in the current run
+  const audioIsDoneRef = useRef(false);
+
+  const audioStart = sToMs(audio.startTime);
+  const segmentStart = audio.startTimestamp ?? 0;
 
   // if there are timestamps, we use the difference between them as the duration
   // if not, we assume we're playing the whole audio file.
@@ -53,13 +59,34 @@ export function Scene({
       ? sToMs(audio.finishTimestamp - audio.startTimestamp)
       : Infinity;
 
-  const pauseAudio = () => {
-    // Until the play() promise resolves, we can't pause the audio
-    if (canPauseRef.current) audioRef.current.pause();
-    canPauseRef.current = false;
-    clearTimeout(startTimerRef.current);
-    clearTimeout(finishTimerRef.current);
+  const getSegmentDuration = useCallback(
+    () =>
+      duration === Infinity
+        ? sToMs(audioRef.current.duration - segmentStart)
+        : duration,
+    [duration, segmentStart]
+  );
+
+  // How much of the segment has been played, in ms. This only advances while
+  // the audio is audibly playing, so it stands still during buffering.
+  const getAudioOffset = useCallback(() => {
+    const { ended, currentTime } = audioRef.current;
+    return audioIsDoneRef.current || ended
+      ? getSegmentDuration()
+      : sToMs(currentTime - segmentStart);
+  }, [getSegmentDuration, segmentStart]);
+
+  const startAudio = () => {
+    audioIsActiveRef.current = true;
+    // play() rejects when pause() interrupts it or when the browser blocks
+    // playback. The next click on the play button retries.
+    void audioRef.current.play().catch(() => undefined);
   };
+
+  const pauseAudio = useCallback(() => {
+    audioRef.current.pause();
+    audioIsActiveRef.current = false;
+  }, []);
 
   const pauseAnimation = () => {
     setIsPlaying(false);
@@ -70,9 +97,15 @@ export function Scene({
 
   const resetAudio = useCallback(() => {
     pauseAudio();
-    audioRef.current.currentTime = audio.startTimestamp || 0;
-    pausedAtRef.current = 0;
-  }, [audio.startTimestamp]);
+    audioRef.current.currentTime = segmentStart;
+  }, [pauseAudio, segmentStart]);
+
+  const finishAudioAtSegmentEnd = useCallback(() => {
+    if (audioIsActiveRef.current && getAudioOffset() >= getSegmentDuration()) {
+      resetAudio();
+      audioIsDoneRef.current = true;
+    }
+  }, [getAudioOffset, getSegmentDuration, resetAudio]);
 
   // on mount
   useEffect(() => {
@@ -84,6 +117,9 @@ export function Scene({
         duration !== Infinity ? `#t=${audio.startTimestamp}` : '';
       current.volume = 1;
       current.addEventListener('canplaythrough', audioLoaded);
+      // The animation frames that normally end the segment stop in background
+      // tabs, while timeupdate keeps firing.
+      current.addEventListener('timeupdate', finishAudioAtSegmentEnd);
       current.src = `${sounds}/${audio.filename}${audioTimestamp}`;
       current.preload = 'auto';
       current.load();
@@ -107,8 +143,9 @@ export function Scene({
     return () => {
       resetAudio();
       current.removeEventListener('canplaythrough', audioLoaded);
+      current.removeEventListener('timeupdate', finishAudioAtSegmentEnd);
     };
-  }, [duration, setup, commands, resetAudio]);
+  }, [duration, setup, commands, resetAudio, finishAudioAtSegmentEnd]);
 
   const initBackground = setup.background;
 
@@ -132,10 +169,8 @@ export function Scene({
   const [characters, setCharacters] = useState(initCharacters);
   const [dialogue, setDialogue] = useState(initDialogue);
   const [background, setBackground] = useState(initBackground);
-  const startClocktimeRef = useRef<number>(0);
-  const pausedAtRef = useRef<number>(0);
-  const startTimerRef = useRef<number>();
-  const finishTimerRef = useRef<number>();
+  const sceneTimeRef = useRef<number>(0);
+  const lastFrameTimeRef = useRef<number>(0);
   const animationRef = useRef<number>();
   const usedCommandsRef = useRef(new Set<number>());
 
@@ -173,14 +208,37 @@ export function Scene({
   };
 
   const handlePlay = useCallback(() => {
-    const pausedAt = pausedAtRef.current;
-    const updateCurrentTime = () => {
-      const time = Date.now() - startClocktimeRef.current;
-      setCurrentTime(time);
-
-      if (isPlayingSceneRef.current) {
-        animationRef.current = window.requestAnimationFrame(updateCurrentTime);
+    // The audio is the master clock: while it plays, the scene time follows
+    // the audio position, so the animation waits whenever the audio buffers.
+    const updateCurrentTime = (frameTime: number) => {
+      if (!isPlayingSceneRef.current) {
+        return;
       }
+      const elapsed = Math.max(0, frameTime - lastFrameTimeRef.current);
+      lastFrameTimeRef.current = frameTime;
+
+      finishAudioAtSegmentEnd();
+
+      const audioEnd = audioStart + getSegmentDuration();
+      const sceneTime = advanceSceneTime({
+        sceneTime: sceneTimeRef.current,
+        elapsed,
+        audioStart,
+        audioEnd,
+        audioOffset: getAudioOffset()
+      });
+      sceneTimeRef.current = sceneTime;
+      setCurrentTime(sceneTime);
+
+      if (
+        sceneTime >= audioStart &&
+        sceneTime < audioEnd &&
+        !audioIsActiveRef.current
+      ) {
+        startAudio();
+      }
+
+      animationRef.current = window.requestAnimationFrame(updateCurrentTime);
     };
     // TODO: if we manage the playing state in another module, we should not
     // need the early return here. It should not be possible for this to be
@@ -189,86 +247,40 @@ export function Scene({
     setIsPlaying(true);
     isPlayingSceneRef.current = true;
 
-    // when we paused, the startRef was the clock time when we started and
-    // pausedAt was the currentTime (i.e. how long we've been playing). That
-    // means to resume we need to set the startRef to the current time minus
-    // the time we've already played.
-    startClocktimeRef.current = Date.now() - pausedAt;
-    updateCurrentTime();
-
-    const audioStartDelay = sToMs(audio.startTime) - pausedAt;
-
-    // @ts-expect-error it's not a node timer
-    startTimerRef.current = setTimeout(() => {
-      if (audioRef.current.paused) {
-        void audioRef.current.play().then(() => {
-          canPauseRef.current = true;
-
-          // If the duration is Infinity, that means the duration is simply the
-          // length of the file. However we need to actively stop the audio to
-          // ensure that cleanup (i.e. resetAudio is called) )
-          const effectiveDuration =
-            duration === Infinity ? sToMs(audioRef.current.duration) : duration;
-
-          // If the delay is positive, the setTimeout will have already waited
-          // that amount of time. However, if it's negative, then the setTimeout
-          // has no delay and we need to account for that when calculating how
-          // much audio is left to play.
-          const effectiveStartDelay = Math.min(0, audioStartDelay);
-          const audioEndDelay = effectiveDuration + effectiveStartDelay;
-
-          if (audioEndDelay < 0) {
-            resetAudio();
-            return;
-          }
-          // @ts-expect-error it's not a node timer
-          finishTimerRef.current = setTimeout(() => {
-            const endTimeStamp = sToMs(audio.finishTimestamp!); // it exists because duration is not Infinity
-            const audioCurrentTime = sToMs(audioRef.current.currentTime);
-            const remainingTime = endTimeStamp - audioCurrentTime;
-            // For some reason, despite the setTimeout resolving at the right
-            // time, the currentTime can be smaller than expected. That means
-            // that if we pause now it will cut off the last part.
-            if (remainingTime < 100) {
-              // 100ms is arbitrary and may need to be adjusted if people still
-              // notice the cut off
-
-              resetAudio();
-            } else {
-              // @ts-expect-error it's not a node timer
-              finishTimerRef.current = setTimeout(() => {
-                resetAudio();
-              }, remainingTime);
-            }
-          }, audioEndDelay);
-        });
-      }
-    }, audioStartDelay);
-  }, [audio, duration, isPlaying, resetAudio, sceneIsReady]);
+    lastFrameTimeRef.current = performance.now();
+    animationRef.current = window.requestAnimationFrame(updateCurrentTime);
+  }, [
+    audioStart,
+    finishAudioAtSegmentEnd,
+    getAudioOffset,
+    getSegmentDuration,
+    isPlaying,
+    sceneIsReady
+  ]);
 
   const handlePause = useCallback(() => {
     isPlayingSceneRef.current = false;
-    pausedAtRef.current = currentTime;
     pauseAudio();
     pauseAnimation();
-  }, [currentTime]);
+  }, [pauseAudio]);
 
   const handleStop = useCallback(() => {
     usedCommandsRef.current.clear();
-    pauseAudio();
+    resetAudio();
     pauseAnimation();
-    audioRef.current.currentTime = audio.startTimestamp || 0;
+    audioIsDoneRef.current = false;
+    sceneTimeRef.current = 0;
     setCurrentTime(0);
     setIsPlaying(false);
     isPlayingSceneRef.current = false;
     setDialogue(initDialogue);
     setCharacters(initCharacters);
     setBackground(initBackground);
-  }, [audio, initCharacters, initBackground]);
+  }, [resetAudio, initCharacters, initBackground]);
 
   const resetAnimation = useCallback(() => {
     usedCommandsRef.current.clear();
-    startClocktimeRef.current = 0;
+    sceneTimeRef.current = 0;
     setCurrentTime(0);
     setDialogue(initDialogue);
     setCharacters(initCharacters);
@@ -278,7 +290,7 @@ export function Scene({
   const resetScene = () => {
     setIsPlaying(false);
     isPlayingSceneRef.current = false;
-    pausedAtRef.current = 0;
+    audioIsDoneRef.current = false;
   };
 
   const onNotify = useCallback(
@@ -336,18 +348,27 @@ export function Scene({
       }
     });
 
-    if (currentTime >= resetTime) {
+    // The scene outlasts the audio, so a segment that runs past the last
+    // command still plays in full.
+    const sceneEnd = Math.max(resetTime, audioStart + getSegmentDuration());
+
+    if (currentTime >= sceneEnd) {
       // resetAnimation only works if called AFTER the commands, otherwise the
       // commands will undo the reset.
       resetAnimation();
       resetScene();
     }
-  }, [currentTime, resetTime, sortedCommands, resetAnimation]);
+  }, [
+    currentTime,
+    resetTime,
+    sortedCommands,
+    resetAnimation,
+    audioStart,
+    getSegmentDuration
+  ]);
 
   useEffect(() => {
     return () => {
-      clearTimeout(startTimerRef.current);
-      clearTimeout(finishTimerRef.current);
       // @ts-expect-error cancelAnimationFrame accepts undefined, but TS doesn't
       // know that
       window.cancelAnimationFrame(animationRef.current);

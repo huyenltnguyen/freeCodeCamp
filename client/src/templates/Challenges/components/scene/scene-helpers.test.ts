@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { type SceneCommand } from '../../../../redux/prop-types';
-import { buildTranscript } from './scene-helpers';
+import { advanceSceneTime, buildTranscript } from './scene-helpers';
 
 describe('scene-helpers', () => {
   describe('buildTranscript', () => {
@@ -219,6 +219,53 @@ describe('scene-helpers', () => {
       expect(result).toContain('<p>');
       expect(result).toContain('</p>');
       expect(result).toContain('<b>Alice</b>');
+    });
+  });
+
+  describe('advanceSceneTime', () => {
+    const clock = {
+      sceneTime: 0,
+      elapsed: 16,
+      audioStart: 1000,
+      audioEnd: 3100,
+      audioOffset: 0
+    };
+
+    it('should follow the wall clock before the audio starts', () => {
+      expect(advanceSceneTime({ ...clock, sceneTime: 500 })).toBe(516);
+    });
+
+    it('should wait at the audio start until the audio takes over', () => {
+      expect(advanceSceneTime({ ...clock, sceneTime: 990 })).toBe(1000);
+    });
+
+    it('should hold still while the audio buffers', () => {
+      expect(advanceSceneTime({ ...clock, sceneTime: 1000 })).toBe(1000);
+      expect(
+        advanceSceneTime({ ...clock, sceneTime: 1800, audioOffset: 800 })
+      ).toBe(1800);
+    });
+
+    it('should follow the audio position while the audio plays', () => {
+      expect(
+        advanceSceneTime({ ...clock, sceneTime: 1800, audioOffset: 850 })
+      ).toBe(1850);
+    });
+
+    it('should never move backwards when the audio position lags', () => {
+      expect(
+        advanceSceneTime({ ...clock, sceneTime: 1800, audioOffset: -50 })
+      ).toBe(1800);
+    });
+
+    it('should stop at the audio end when the audio overshoots', () => {
+      expect(
+        advanceSceneTime({ ...clock, sceneTime: 3090, audioOffset: 2130 })
+      ).toBe(3100);
+    });
+
+    it('should follow the wall clock after the audio ends', () => {
+      expect(advanceSceneTime({ ...clock, sceneTime: 3100 })).toBe(3116);
     });
   });
 });
